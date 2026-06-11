@@ -1,4 +1,4 @@
-# AndroidComposeCharts
+﻿# AndroidComposeCharts
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Platform](https://img.shields.io/badge/Platform-Android-green.svg)](https://developer.android.com)
@@ -20,27 +20,27 @@
 
 <table>
   <tr>
-    <td align="center"><b>温度变化趋势</b><br/><img src="images/line_temp_light.png" width="220" alt="温度变化趋势"/></td>
-    <td align="center"><b>流量对比看板 (多系列)</b><br/><img src="images/line_multi_light.png" width="220" alt="流量对比看板"/></td>
-    <td align="center"><b>海量点密集折线 (1000+)</b><br/><img src="images/line_big_light.png" width="220" alt="密集折线"/></td>
+    <td align="center"><b>温度变化趋势</b><br/><img src="doc_images/line_temp_light.png" width="220" alt="温度变化趋势"/></td>
+    <td align="center"><b>流量对比看板 (多系列)</b><br/><img src="doc_images/line_multi_light.png" width="220" alt="流量对比看板"/></td>
+    <td align="center"><b>海量点密集折线 (1000+)</b><br/><img src="doc_images/line_big_light.png" width="220" alt="密集折线"/></td>
   </tr>
   <tr>
-    <td align="center"><b>折线图堆叠</b><br/><img src="images/line_stacked_light.png" width="220" alt="折线图堆叠"/></td>
-    <td align="center"><b>堆叠面积图</b><br/><img src="images/line_stacked_area_light.png" width="220" alt="堆叠面积图"/></td>
-    <td align="center"><b>渐变堆叠面积</b><br/><img src="images/line_gradient_stacked_area_light.png" width="220" alt="渐变堆叠面积"/></td>
+    <td align="center"><b>折线图堆叠</b><br/><img src="doc_images/line_stacked_light.png" width="220" alt="折线图堆叠"/></td>
+    <td align="center"><b>堆叠面积图</b><br/><img src="doc_images/line_stacked_area_light.png" width="220" alt="堆叠面积图"/></td>
+    <td align="center"><b>渐变堆叠面积</b><br/><img src="doc_images/line_gradient_stacked_area_light.png" width="220" alt="渐变堆叠面积"/></td>
   </tr>
   <tr>
-    <td align="center"><b>置信区间带图 (误差范围)</b><br/><img src="images/line_confidence_band_light.png" width="220" alt="置信区间带图"/></td>
-    <td align="center"><b>双 X 轴雨量对比</b><br/><img src="images/line_multiple_x_axes_light.png" width="220" alt="双 X 轴雨量对比"/></td>
-    <td align="center"><b>阶梯折线图</b><br/><img src="images/line_step_light.png" width="220" alt="阶梯折线"/></td>
+    <td align="center"><b>置信区间带图 (误差范围)</b><br/><img src="doc_images/line_confidence_band_light.png" width="220" alt="置信区间带图"/></td>
+    <td align="center"><b>双 X 轴雨量对比</b><br/><img src="doc_images/line_multiple_x_axes_light.png" width="220" alt="双 X 轴雨量对比"/></td>
+    <td align="center"><b>阶梯折线图</b><br/><img src="doc_images/line_step_light.png" width="220" alt="阶梯折线"/></td>
   </tr>
   <tr>
-    <td align="center"><b>动态排序赛跑 (Race)</b><br/><img src="images/line_race_light.png" width="220" alt="动态排序赛跑"/></td>
-    <td align="center"><b>数学函数绘图 (数值双轴)</b><br/><img src="images/line_function_plot_light.png" width="220" alt="数学函数绘图"/></td>
-    <td align="center"><b>排名消长凹凸图 (Bump)</b><br/><img src="images/line_bump_light.png" width="220" alt="凹凸图"/></td>
+    <td align="center"><b>动态排序赛跑 (Race)</b><br/><img src="doc_images/line_race_light.png" width="220" alt="动态排序赛跑"/></td>
+    <td align="center"><b>数学函数绘图 (数值双轴)</b><br/><img src="doc_images/line_function_plot_light.png" width="220" alt="数学函数绘图"/></td>
+    <td align="center"><b>排名消长凹凸图 (Bump)</b><br/><img src="doc_images/line_bump_light.png" width="220" alt="凹凸图"/></td>
   </tr>
   <tr>
-    <td align="center"><b>警戒分带与高峰标注</b><br/><img src="images/line_mark_area_light.png" width="220" alt="警戒分带"/></td>
+    <td align="center"><b>警戒分带与高峰标注</b><br/><img src="doc_images/line_mark_area_light.png" width="220" alt="警戒分带"/></td>
     <td colspan="2"></td>
   </tr>
 </table>
@@ -49,18 +49,18 @@
 
 <table>
   <tr>
-    <td align="center"><b>双柱并列对比</b><br/><img src="images/bar_compare_light.png" width="220" alt="双柱并列对比"/></td>
-    <td align="center"><b>正负双向堆叠</b><br/><img src="images/bar_stack_light.png" width="220" alt="正负双向堆叠"/></td>
-    <td align="center"><b>空气质量排名 (水平条形)</b><br/><img src="images/bar_horizontal_light.png" width="220" alt="水平条形"/></td>
+    <td align="center"><b>双柱并列对比</b><br/><img src="doc_images/bar_compare_light.png" width="220" alt="双柱并列对比"/></td>
+    <td align="center"><b>正负双向堆叠</b><br/><img src="doc_images/bar_stack_light.png" width="220" alt="正负双向堆叠"/></td>
+    <td align="center"><b>空气质量排名 (水平条形)</b><br/><img src="doc_images/bar_horizontal_light.png" width="220" alt="水平条形"/></td>
   </tr>
   <tr>
-    <td align="center"><b>交错正负轴条形图</b><br/><img src="images/bar_negative_value_light.png" width="220" alt="交错正负"/></td>
-    <td align="center"><b>开支瀑布图</b><br/><img src="images/bar_waterfall_light.png" width="220" alt="瀑布图"/></td>
-    <td align="center"><b>发光渐变与点击聚焦</b><br/><img src="images/bar_gradient_zoom_light.png" width="220" alt="点击聚焦"/></td>
+    <td align="center"><b>交错正负轴条形图</b><br/><img src="doc_images/bar_negative_value_light.png" width="220" alt="交错正负"/></td>
+    <td align="center"><b>开支瀑布图</b><br/><img src="doc_images/bar_waterfall_light.png" width="220" alt="瀑布图"/></td>
+    <td align="center"><b>发光渐变与点击聚焦</b><br/><img src="doc_images/bar_gradient_zoom_light.png" width="220" alt="点击聚焦"/></td>
   </tr>
   <tr>
-    <td align="center"><b>极坐标径向扇形图</b><br/><img src="images/polar_bar_radial_light.png" width="220" alt="极坐标径向"/></td>
-    <td align="center"><b>极坐标切向圆环图</b><br/><img src="images/polar_bar_tangential_light.png" width="220" alt="极坐标切向"/></td>
+    <td align="center"><b>极坐标径向扇形图</b><br/><img src="doc_images/polar_bar_radial_light.png" width="220" alt="极坐标径向"/></td>
+    <td align="center"><b>极坐标切向圆环图</b><br/><img src="doc_images/polar_bar_tangential_light.png" width="220" alt="极坐标切向"/></td>
     <td></td>
   </tr>
 </table>
@@ -69,19 +69,19 @@
 
 <table>
   <tr>
-    <td align="center"><b>全球人口占比 (经典饼图)</b><br/><img src="images/pie_basic_light.png" width="220" alt="经典饼图"/></td>
-    <td align="center"><b>搜索引擎份额 (空心环图)</b><br/><img src="images/pie_doughnut_light.png" width="220" alt="空心环图"/></td>
-    <td align="center"><b>双玫瑰对比 (南丁格尔)</b><br/><img src="images/pie_rose_light.png" width="220" alt="南丁格尔玫瑰"/></td>
+    <td align="center"><b>全球人口占比 (经典饼图)</b><br/><img src="doc_images/pie_basic_light.png" width="220" alt="经典饼图"/></td>
+    <td align="center"><b>搜索引擎份额 (空心环图)</b><br/><img src="doc_images/pie_doughnut_light.png" width="220" alt="空心环图"/></td>
+    <td align="center"><b>双玫瑰对比 (南丁格尔)</b><br/><img src="doc_images/pie_rose_light.png" width="220" alt="南丁格尔玫瑰"/></td>
   </tr>
   <tr>
-    <td align="center"><b>基础南丁格尔玫瑰图</b><br/><img src="images/pie_rose_basic_light.png" width="220" alt="基础南丁格尔"/></td>
-    <td align="center"><b>站点访问来源 (引线排版)</b><br/><img src="images/pie_basic_access_light.png" width="220" alt="站点访问来源"/></td>
-    <td align="center"><b>圆角环形图 (贝塞尔平滑)</b><br/><img src="images/pie_rounded_doughnut_light.png" width="220" alt="圆角环形"/></td>
+    <td align="center"><b>基础南丁格尔玫瑰图</b><br/><img src="doc_images/pie_rose_basic_light.png" width="220" alt="基础南丁格尔"/></td>
+    <td align="center"><b>站点访问来源 (引线排版)</b><br/><img src="doc_images/pie_basic_access_light.png" width="220" alt="站点访问来源"/></td>
+    <td align="center"><b>圆角环形图 (贝塞尔平滑)</b><br/><img src="doc_images/pie_rounded_doughnut_light.png" width="220" alt="圆角环形"/></td>
   </tr>
   <tr>
-    <td align="center"><b>经典分类环形图</b><br/><img src="images/pie_doughnut_basic_light.png" width="220" alt="环形图"/></td>
-    <td align="center"><b>半环形占比图 (180度)</b><br/><img src="images/pie_half_doughnut_light.png" width="220" alt="半环形"/></td>
-    <td align="center"><b>饼图扇区间隙 (padAngle)</b><br/><img src="images/pie_pad_angle_light.png" width="220" alt="扇区间隙"/></td>
+    <td align="center"><b>经典分类环形图</b><br/><img src="doc_images/pie_doughnut_basic_light.png" width="220" alt="环形图"/></td>
+    <td align="center"><b>半环形占比图 (180度)</b><br/><img src="doc_images/pie_half_doughnut_light.png" width="220" alt="半环形"/></td>
+    <td align="center"><b>饼图扇区间隙 (padAngle)</b><br/><img src="doc_images/pie_pad_angle_light.png" width="220" alt="扇区间隙"/></td>
   </tr>
 </table>
 
@@ -89,27 +89,27 @@
 
 <table>
   <tr>
-    <td align="center"><b>3D 柱状打卡图 (透视投影)</b><br/><img src="images/bar3d_punch_card_light.png" width="220" alt="3D打卡"/></td>
-    <td align="center"><b>战力对比雷达</b><br/><img src="images/radar_light.png" width="220" alt="雷达图"/></td>
-    <td align="center"><b>个股行情日K (双轴联动)</b><br/><img src="images/kline_light.png" width="220" alt="K线"/></td>
+    <td align="center"><b>3D 柱状打卡图 (透视投影)</b><br/><img src="doc_images/bar3d_punch_card_light.png" width="220" alt="3D打卡"/></td>
+    <td align="center"><b>战力对比雷达</b><br/><img src="doc_images/radar_light.png" width="220" alt="雷达图"/></td>
+    <td align="center"><b>个股行情日K (双轴联动)</b><br/><img src="doc_images/kline_light.png" width="220" alt="K线"/></td>
   </tr>
   <tr>
-    <td align="center"><b>告警监控散点 (GDP气泡)</b><br/><img src="images/scatter_light.png" width="220" alt="散点图"/></td>
-    <td align="center"><b>车速安全仪表 (经典指针)</b><br/><img src="images/gauge_light.png" width="220" alt="仪表盘"/></td>
-    <td align="center"><b>等级分类仪表 (小三角指针)</b><br/><img src="images/gauge_grade_light.png" width="220" alt="等级仪表"/></td>
+    <td align="center"><b>告警监控散点 (GDP气泡)</b><br/><img src="doc_images/scatter_light.png" width="220" alt="散点图"/></td>
+    <td align="center"><b>车速安全仪表 (经典指针)</b><br/><img src="doc_images/gauge_light.png" width="220" alt="仪表盘"/></td>
+    <td align="center"><b>等级分类仪表 (小三角指针)</b><br/><img src="doc_images/gauge_grade_light.png" width="220" alt="等级仪表"/></td>
   </tr>
   <tr>
-    <td align="center"><b>气温测量仪表 (极简进度弧)</b><br/><img src="images/gauge_temperature_light.png" width="220" alt="气温仪表"/></td>
-    <td align="center"><b>基础日历热力图 (提交墙)</b><br/><img src="images/calendar_basic_light.png" width="220" alt="日历热力"/></td>
-    <td align="center"><b>纵向打卡日历图 (考勤打卡)</b><br/><img src="images/calendar_vertical_light.png" width="220" alt="纵向日历"/></td>
+    <td align="center"><b>气温测量仪表 (极简进度弧)</b><br/><img src="doc_images/gauge_temperature_light.png" width="220" alt="气温仪表"/></td>
+    <td align="center"><b>基础日历热力图 (提交墙)</b><br/><img src="doc_images/calendar_basic_light.png" width="220" alt="日历热力"/></td>
+    <td align="center"><b>纵向打卡日历图 (考勤打卡)</b><br/><img src="doc_images/calendar_vertical_light.png" width="220" alt="纵向日历"/></td>
   </tr>
   <tr>
-    <td align="center"><b>农历自定义日历 (徽标嵌入)</b><br/><img src="images/calendar_lunar_light.png" width="220" alt="农历日历"/></td>
-    <td align="center"><b>流失转化漏斗</b><br/><img src="images/funnel_light.png" width="220" alt="漏斗"/></td>
-    <td align="center"><b>工艺缺陷箱形 (Boxplot)</b><br/><img src="images/boxplot_light.png" width="220" alt="箱线图"/></td>
+    <td align="center"><b>农历自定义日历 (徽标嵌入)</b><br/><img src="doc_images/calendar_lunar_light.png" width="220" alt="农历日历"/></td>
+    <td align="center"><b>流失转化漏斗</b><br/><img src="doc_images/funnel_light.png" width="220" alt="漏斗"/></td>
+    <td align="center"><b>工艺缺陷箱形 (Boxplot)</b><br/><img src="doc_images/boxplot_light.png" width="220" alt="箱线图"/></td>
   </tr>
   <tr>
-    <td align="center"><b>雨量蒸发混合 (双Y轴对齐)</b><br/><img src="images/mixed_line_bar_light.png" width="220" alt="混合图"/></td>
+    <td align="center"><b>雨量蒸发混合 (双Y轴对齐)</b><br/><img src="doc_images/mixed_line_bar_light.png" width="220" alt="混合图"/></td>
     <td colspan="2"></td>
   </tr>
 </table>
@@ -155,7 +155,7 @@ val lineChartData = LineChartData(
 )
 LineChart(data = lineChartData, modifier = Modifier.fillMaxSize())
 ```
-![折线图预览](images/doc_line_light.png)
+![折线图预览](doc_images/doc_line_light.png)
 
 ### 2. 柱状图 (BarChart)
 ```kotlin
@@ -186,7 +186,7 @@ val barChartData = BarChartData(
 )
 BarChart(data = barChartData, modifier = Modifier.fillMaxSize())
 ```
-![柱状图预览](images/doc_bar_light.png)
+![柱状图预览](doc_images/doc_bar_light.png)
 
 ### 3. 饼图 / 环形图 (PieChart)
 ```kotlin
@@ -207,7 +207,7 @@ val customStyle = style.copy(
 )
 PieChart(data = pieChartData, style = customStyle, modifier = Modifier.fillMaxSize())
 ```
-![饼图预览](images/doc_pie_light.png)
+![饼图预览](doc_images/doc_pie_light.png)
 
 ### 4. 3D 柱状打卡图 (Bar3DChart)
 ```kotlin
@@ -230,7 +230,7 @@ val options = Bar3DOptions(
 )
 Bar3DChart(data = bar3DChartData, options = options, modifier = Modifier.fillMaxSize())
 ```
-![3D柱状打卡图预览](images/doc_bar3d_light.png)
+![3D柱状打卡图预览](doc_images/doc_bar3d_light.png)
 
 ---
 

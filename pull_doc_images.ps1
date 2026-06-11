@@ -4,7 +4,7 @@
 # 2. 将生成的 26 张图表截图 (13大类 * 2种明暗主题) 自动拉取至本地 images/ 目录下，确保图表外观与 Markdown 文档示例 100% 绝对一致。
 
 $remoteDir = "/sdcard/Android/data/io.github.composechart.showroom/files/chart_screenshots"
-$localDir = "images"
+$localDir = "doc_images"
 
 Write-Host "🔍 正在检测 ADB 连接设备..." -ForegroundColor Cyan
 $devices = adb devices | Select-String -Pattern "device$"
