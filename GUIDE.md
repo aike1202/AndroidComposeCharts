@@ -75,7 +75,9 @@ fun LineChartDemo(style: ChartStyle) {
 ```
 
 #### 效果图预览
-<img src="docs_screenshots/doc_line_light.png" width="360" alt="折线图 亮色" />
+<div align="center">
+  <img src="docs_screenshots/doc_line_light.png" width="450" alt="折线图 亮色" />
+</div>
 
 ---
 
@@ -128,7 +130,9 @@ fun BarChartDemo(style: ChartStyle) {
 ```
 
 #### 效果图预览
-<img src="docs_screenshots/doc_bar_light.png" width="360" alt="柱状图 亮色" />
+<div align="center">
+  <img src="docs_screenshots/doc_bar_light.png" width="450" alt="柱状图 亮色" />
+</div>
 
 ---
 
@@ -173,7 +177,9 @@ fun PieChartDemo(style: ChartStyle) {
 ```
 
 #### 效果图预览
-<img src="docs_screenshots/doc_pie_light.png" width="360" alt="饼图 亮色" />
+<div align="center">
+  <img src="docs_screenshots/doc_pie_light.png" width="450" alt="饼图 亮色" />
+</div>
 
 ---
 
@@ -220,7 +226,9 @@ fun Bar3DChartDemo(style: ChartStyle) {
 ```
 
 #### 效果图预览
-<img src="docs_screenshots/doc_bar3d_light.png" width="360" alt="3D图 亮色" />
+<div align="center">
+  <img src="docs_screenshots/doc_bar3d_light.png" width="450" alt="3D图 亮色" />
+</div>
 
 ---
 
@@ -271,7 +279,9 @@ fun CalendarChartDemo(style: ChartStyle) {
 ```
 
 #### 效果图预览
-<img src="docs_screenshots/doc_calendar_light.png" width="360" alt="日历图 亮色" />
+<div align="center">
+  <img src="docs_screenshots/doc_calendar_light.png" width="450" alt="日历图 亮色" />
+</div>
 
 ---
 
@@ -314,7 +324,9 @@ fun GaugeChartDemo(style: ChartStyle) {
 ```
 
 #### 效果图预览
-<img src="docs_screenshots/doc_gauge_light.png" width="360" alt="仪表盘 亮色" />
+<div align="center">
+  <img src="docs_screenshots/doc_gauge_light.png" width="450" alt="仪表盘 亮色" />
+</div>
 
 ---
 
@@ -363,7 +375,9 @@ fun RadarChartDemo(style: ChartStyle) {
 ```
 
 #### 效果图预览
-<img src="docs_screenshots/doc_radar_light.png" width="360" alt="雷达图 亮色" />
+<div align="center">
+  <img src="docs_screenshots/doc_radar_light.png" width="450" alt="雷达图 亮色" />
+</div>
 
 ---
 
@@ -397,7 +411,9 @@ fun KLineChartDemo(style: ChartStyle) {
 ```
 
 #### 效果图预览
-<img src="docs_screenshots/doc_kline_light.png" width="360" alt="K线图 亮色" />
+<div align="center">
+  <img src="docs_screenshots/doc_kline_light.png" width="450" alt="K线图 亮色" />
+</div>
 
 ---
 
@@ -447,7 +463,9 @@ fun ScatterChartDemo(style: ChartStyle) {
 ```
 
 #### 效果图预览
-<img src="docs_screenshots/doc_scatter_light.png" width="360" alt="散点图 亮色" />
+<div align="center">
+  <img src="docs_screenshots/doc_scatter_light.png" width="450" alt="散点图 亮色" />
+</div>
 
 ---
 
@@ -493,7 +511,9 @@ fun BoxplotChartDemo(style: ChartStyle) {
 ```
 
 #### 效果图预览
-<img src="docs_screenshots/doc_boxplot_light.png" width="360" alt="箱线图 亮色" />
+<div align="center">
+  <img src="docs_screenshots/doc_boxplot_light.png" width="450" alt="箱线图 亮色" />
+</div>
 
 ---
 
@@ -529,7 +549,9 @@ fun FunnelChartDemo(style: ChartStyle) {
 ```
 
 #### 效果图预览
-<img src="docs_screenshots/doc_funnel_light.png" width="360" alt="漏斗图 亮色" />
+<div align="center">
+  <img src="docs_screenshots/doc_funnel_light.png" width="450" alt="漏斗图 亮色" />
+</div>
 
 ---
 
@@ -581,7 +603,9 @@ fun MixedChartDemo(style: ChartStyle) {
 ```
 
 #### 效果图预览
-<img src="docs_screenshots/doc_mixed_light.png" width="360" alt="混合图 亮色" />
+<div align="center">
+  <img src="docs_screenshots/doc_mixed_light.png" width="450" alt="混合图 亮色" />
+</div>
 
 ---
 
@@ -618,4 +642,6 @@ fun PolarBarChartDemo(style: ChartStyle) {
 ```
 
 #### 效果图预览
-<img src="docs_screenshots/doc_polar_light.png" width="360" alt="极坐标图 亮色" />
+<div align="center">
+  <img src="docs_screenshots/doc_polar_light.png" width="450" alt="极坐标图 亮色" />
+</div>
