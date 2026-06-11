@@ -118,7 +118,7 @@
 
 ## 🛠 快速上手
 
-这里提供了最常用的四大基础图表在 Jetpack Compose 中的**最简化接入代码**。
+这里提供了最常用的四大基础图表在 Jetpack Compose 中的接入代码与渲染预览。
 
 > 💡 **想要获取所有 13 大类图表（如雷达图、日历热力图、K线图、极坐标图等）更详尽的挂载示例与高级参数微调选项？**
 >
@@ -126,58 +126,111 @@
 
 ### 1. 折线图 (LineChart)
 ```kotlin
-val lineData = LineChartData(
-    xLabels = listOf("周一", "周二", "周三"),
+val lineChartData = LineChartData(
+    xLabels = listOf("周一", "周二", "周三", "周四", "周五", "周六", "周日"),
     series = listOf(
         LineSeries(
             name = "邮件营销",
-            points = listOf(LinePoint(0f, 120f), LinePoint(1f, 132f), LinePoint(2f, 101f)),
-            color = Color(0xFF5470C6)
+            points = listOf(
+                LinePoint(0f, 120f), LinePoint(1f, 132f), LinePoint(2f, 101f),
+                LinePoint(3f, 134f), LinePoint(4f, 90f), LinePoint(5f, 230f), LinePoint(6f, 210f)
+            ),
+            color = Color(0xFF5470C6),
+            isSmooth = true,
+            drawArea = true,
+            areaBrush = Brush.verticalGradient(
+                colors = listOf(Color(0xFF5470C6).copy(alpha = 0.4f), Color.Transparent)
+            )
+        ),
+        LineSeries(
+            name = "联盟广告",
+            points = listOf(
+                LinePoint(0f, 220f), LinePoint(1f, 182f), LinePoint(2f, 191f),
+                LinePoint(3f, 234f), LinePoint(4f, 290f), LinePoint(5f, 330f), LinePoint(6f, 310f)
+            ),
+            color = Color(0xFF91CC75),
+            isSmooth = true
         )
     )
 )
-LineChart(data = lineData, modifier = Modifier.fillMaxSize())
+LineChart(data = lineChartData, modifier = Modifier.fillMaxSize())
 ```
+![折线图预览](images/doc_line_light.png)
 
 ### 2. 柱状图 (BarChart)
 ```kotlin
-val barData = BarChartData(
-    xLabels = listOf("一月", "二月", "三月"),
+val barChartData = BarChartData(
+    xLabels = listOf("一月", "二月", "三月", "四月", "五月", "六月"),
     series = listOf(
         BarSeries(
             name = "蒸发量",
-            values = listOf(BarValue(2.0f), BarValue(4.9f), BarValue(7.0f)),
-            color = Color(0xFF5470C6)
+            values = listOf(
+                BarValue(2.0f), BarValue(4.9f), BarValue(7.0f),
+                BarValue(23.2f), BarValue(25.6f), BarValue(76.7f)
+            ),
+            color = Color(0xFF5470C6),
+            cornerRadius = CornerRadius(12f, 12f),
+            barWidthRatio = 0.5f
+        ),
+        BarSeries(
+            name = "降水量",
+            values = listOf(
+                BarValue(2.6f), BarValue(5.9f), BarValue(9.0f),
+                BarValue(26.4f), BarValue(28.7f), BarValue(70.7f)
+            ),
+            color = Color(0xFF91CC75),
+            cornerRadius = CornerRadius(12f, 12f),
+            barWidthRatio = 0.5f
         )
     )
 )
-BarChart(data = barData, modifier = Modifier.fillMaxSize())
+BarChart(data = barChartData, modifier = Modifier.fillMaxSize())
 ```
+![柱状图预览](images/doc_bar_light.png)
 
 ### 3. 饼图 / 环形图 (PieChart)
 ```kotlin
-val pieData = PieChartData(
+val pieChartData = PieChartData(
     slices = listOf(
         PieSlice("搜索引擎", 1048f, Color(0xFF5470C6)),
-        PieSlice("直接输入", 735f, Color(0xFF91CC75))
+        PieSlice("直接输入", 735f, Color(0xFF91CC75)),
+        PieSlice("友情链接", 580f, Color(0xFFFAC858)),
+        PieSlice("邮件营销", 484f, Color(0xFFEE6666))
     )
 )
-PieChart(data = pieData, modifier = Modifier.fillMaxSize())
+val customStyle = style.copy(
+    pieOptions = style.pieOptions.copy(
+        innerRadiusRatio = 0.6f,
+        padAngle = 3f,
+        cornerRadius = 8.dp
+    )
+)
+PieChart(data = pieChartData, style = customStyle, modifier = Modifier.fillMaxSize())
 ```
+![饼图预览](images/doc_pie_light.png)
 
 ### 4. 3D 柱状打卡图 (Bar3DChart)
 ```kotlin
-val points = listOf(
-    Bar3DPoint(xIndex = 0, yIndex = 0, zValue = 5f),
-    Bar3DPoint(xIndex = 2, yIndex = 0, zValue = 12f)
-)
-val bar3DData = Bar3DChartData(
-    xAxisLabels = listOf("1a", "2a", "3a"),
+val bar3DChartData = Bar3DChartData(
+    xAxisLabels = listOf("12a", "1a", "2a", "3a", "4a", "5a", "6a"),
     yAxisLabels = listOf("周六", "周日"),
-    points = points
+    points = listOf(
+        Bar3DPoint(xIndex = 0, yIndex = 0, zValue = 5f),
+        Bar3DPoint(xIndex = 2, yIndex = 0, zValue = 12f),
+        Bar3DPoint(xIndex = 4, yIndex = 1, zValue = 8f),
+        Bar3DPoint(xIndex = 6, yIndex = 1, zValue = 15f)
+    )
 )
-Bar3DChart(data = bar3DData, modifier = Modifier.fillMaxSize())
+val options = Bar3DOptions(
+    initialYaw = -45f,
+    initialPitch = 30f,
+    initialZoom = 1.0f,
+    barWidthRatio = 0.5f,
+    visualMapColors = listOf(Color(0xFF73C0DE), Color(0xFF3BA272), Color(0xFFFAC858), Color(0xFFEE6666))
+)
+Bar3DChart(data = bar3DChartData, options = options, modifier = Modifier.fillMaxSize())
 ```
+![3D柱状打卡图预览](images/doc_bar3d_light.png)
 
 ---
 

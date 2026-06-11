@@ -134,7 +134,8 @@ enum class ChartType(
     BAR_WATERFALL("开支瀑布图", "首尾闭合中段悬空的瀑布图模拟", "柱状图系列", Color(0xFF91CC75)),
     BAR_GRADIENT_ZOOM("发光渐变与点击聚焦", "柱体带阴影及渐变，点击类目轴自动缩放", "柱状图系列", Color(0xFFFAC858)),
     POLAR_BAR_RADIAL("极坐标径向扇形图", "不闭合极坐标网格下径向排版标签的柱状图", "极坐标系", Color(0xFF73C0DE)),
-    POLAR_BAR_TANGENTIAL("极坐标切向圆环图", "极轴同心轨道上切向排列标签的圆环图", "极坐标系", Color(0xFF3BA272))
+    POLAR_BAR_TANGENTIAL("极坐标切向圆环图", "极轴同心轨道上切向排列标签的圆环图", "极坐标系", Color(0xFF3BA272)),
+    DOC_SCREENSHOTS("文档截图生成器", "对照 GUIDE.md 的 13 类图表一键生成纯图表截图", "文档工具", Color(0xFF67C23A))
 }
 
 @Composable
@@ -385,6 +386,7 @@ fun ShowroomApp(
                         ChartType.BAR_GRADIENT_ZOOM -> DemoBarGradientZoom(style = chartStyle)
                         ChartType.POLAR_BAR_RADIAL -> DemoPolarRadialBar(style = chartStyle)
                         ChartType.POLAR_BAR_TANGENTIAL -> DemoPolarTangentialBar(style = chartStyle)
+                        ChartType.DOC_SCREENSHOTS -> DocScreenshotsScreen(style = chartStyle)
                     }
                 }
             }

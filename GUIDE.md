@@ -1,6 +1,6 @@
 # AndroidComposeCharts 使用指南 (GUIDE.md)
 
-本指南旨在为您提供 `AndroidComposeCharts`（又名 **Android Compose Chart**）中全部 **13 大类原生图表组件**的快速接入示例与代码模板。所有 Demo 均采用 Kotlin + Jetpack Compose 编写，您可以直接复制到您的项目中使用。
+本指南为您提供 `AndroidComposeCharts` 中全部 **13 大类原生图表组件**的快速接入示例与代码模板。所有示例的代码、数据及参数配置均与 App 演示大厅中的 **文档截图生成器** 完全一致，方便您直接复制到项目中使用，并可实时查阅其真实渲染效果图。
 
 ---
 
@@ -35,7 +35,7 @@ import io.github.composechart.charts.line.*
 import io.github.composechart.core.style.ChartStyle
 
 @Composable
-fun LineChartDemo() {
+fun LineChartDemo(style: ChartStyle) {
     // 1. 准备数据源
     val lineChartData = LineChartData(
         xLabels = listOf("周一", "周二", "周三", "周四", "周五", "周六", "周日"),
@@ -68,11 +68,16 @@ fun LineChartDemo() {
     // 2. 渲染组件
     LineChart(
         data = lineChartData,
-        style = ChartStyle.Light, // 支持 ChartStyle.Light 或 ChartStyle.Dark
+        style = style,
         modifier = Modifier.fillMaxSize()
     )
 }
 ```
+
+#### 效果图预览
+| 亮色主题 (Light) | 暗色主题 (Dark) |
+| :---: | :---: |
+| ![折线图 亮色](images/doc_line_light.png) | ![折线图 暗色](images/doc_line_dark.png) |
 
 ---
 
@@ -89,7 +94,7 @@ import io.github.composechart.charts.bar.*
 import io.github.composechart.core.style.ChartStyle
 
 @Composable
-fun BarChartDemo() {
+fun BarChartDemo(style: ChartStyle) {
     val barChartData = BarChartData(
         xLabels = listOf("一月", "二月", "三月", "四月", "五月", "六月"),
         series = listOf(
@@ -118,11 +123,16 @@ fun BarChartDemo() {
 
     BarChart(
         data = barChartData,
-        style = ChartStyle.Light,
+        style = style,
         modifier = Modifier.fillMaxSize()
     )
 }
 ```
+
+#### 效果图预览
+| 亮色主题 (Light) | 暗色主题 (Dark) |
+| :---: | :---: |
+| ![柱状图 亮色](images/doc_bar_light.png) | ![柱状图 暗色](images/doc_bar_dark.png) |
 
 ---
 
@@ -139,7 +149,7 @@ import io.github.composechart.charts.pie.*
 import io.github.composechart.core.style.ChartStyle
 
 @Composable
-fun PieChartDemo() {
+fun PieChartDemo(style: ChartStyle) {
     val pieChartData = PieChartData(
         slices = listOf(
             PieSlice("搜索引擎", 1048f, Color(0xFF5470C6)),
@@ -150,8 +160,8 @@ fun PieChartDemo() {
     )
 
     // 定制环形首尾圆角与扇区间隙
-    val customStyle = ChartStyle.Light.copy(
-        pieOptions = ChartStyle.Light.pieOptions.copy(
+    val customStyle = style.copy(
+        pieOptions = style.pieOptions.copy(
             innerRadiusRatio = 0.6f,   // 内径比例 (空心环)
             padAngle = 3f,             // 扇区分割间隙大小
             cornerRadius = 8.dp        // 首尾半圆胶囊圆角大小
@@ -165,6 +175,11 @@ fun PieChartDemo() {
     )
 }
 ```
+
+#### 效果图预览
+| 亮色主题 (Light) | 暗色主题 (Dark) |
+| :---: | :---: |
+| ![饼图 亮色](images/doc_pie_light.png) | ![饼图 暗色](images/doc_pie_dark.png) |
 
 ---
 
@@ -180,7 +195,7 @@ import io.github.composechart.charts.bar3d.*
 import io.github.composechart.core.style.ChartStyle
 
 @Composable
-fun Bar3DChartDemo() {
+fun Bar3DChartDemo(style: ChartStyle) {
     val bar3DChartData = Bar3DChartData(
         xAxisLabels = listOf("12a", "1a", "2a", "3a", "4a", "5a", "6a"),
         yAxisLabels = listOf("周六", "周日"),
@@ -192,63 +207,81 @@ fun Bar3DChartDemo() {
         )
     )
 
+    val options = Bar3DOptions(
+        initialYaw = -45f,
+        initialPitch = 30f,
+        initialZoom = 1.0f,
+        barWidthRatio = 0.5f,
+        // 依据高度热力渐变的色带
+        visualMapColors = listOf(Color(0xFF73C0DE), Color(0xFF3BA272), Color(0xFFFAC858), Color(0xFFEE6666))
+    )
+
     Bar3DChart(
         data = bar3DChartData,
-        options = Bar3DOptions(
-            initialYaw = -45f,
-            initialPitch = 30f,
-            initialZoom = 1.0f,
-            barWidthRatio = 0.5f,
-            // 依据高度热力渐变的色带
-            visualMapColors = listOf(Color(0xFF73C0DE), Color(0xFF3BA272), Color(0xFFFAC858), Color(0xFFEE6666))
-        ),
-        style = ChartStyle.Dark, // 深色环境下 3D 着色体验更佳
+        options = options,
+        style = style,
         modifier = Modifier.fillMaxSize()
     )
 }
 ```
 
+#### 效果图预览
+| 亮色主题 (Light) | 暗色主题 (Dark) |
+| :---: | :---: |
+| ![3D图 亮色](images/doc_bar3d_light.png) | ![3D图 暗色](images/doc_bar3d_dark.png) |
+
 ---
 
 ### 5. 📅 矩阵日历热力图 (CalendarChart)
-用于直观呈现全年打卡与数据分布。支持横向（GitHub 贡献墙列）、纵向排布，具备滑动视口防止被截断，且支持农历与特殊符号嵌入。
+用于直观呈现全年打卡与数据分布。支持横向（GitHub 贡献墙列）、纵向排布，具备滑动视口防止被截断，并且在特定日期支持嵌入农历与特殊符号标签。
 
 ```kotlin
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import io.github.composechart.charts.calendar.*
 import io.github.composechart.core.style.ChartStyle
 import java.time.LocalDate
 
 @Composable
-fun CalendarChartDemo() {
-    // 生成模拟的一整年打卡数据
-    val startDate = LocalDate.of(2026, 1, 1)
-    val dayList = (0..364).map {
-        val date = startDate.plusDays(it.toLong())
-        CalendarDayData(
-            date = date,
-            value = (0..100).random().toFloat(),
-            lunarText = if (date.dayOfMonth == 1) "${date.monthValue}月" else null // 自定义农历或标注
-        )
+fun CalendarChartDemo(style: ChartStyle) {
+    // 生成模拟的一整年规律打卡数据
+    val calendarData = remember {
+        val days = mutableListOf<CalendarDayData>()
+        val start = LocalDate.of(2026, 1, 1)
+        for (i in 0..364) {
+            val date = start.plusDays(i.toLong())
+            days.add(
+                CalendarDayData(
+                    date = date.toString(),
+                    value = (i % 7 * 15).toFloat(), // 规律数据映射热力色阶
+                    label = if (date.dayOfMonth == 1) "${date.monthValue}月" else null // 月份首日标注
+                )
+            )
+        }
+        CalendarChartData(year = 2026, days = days)
     }
-    val calendarData = CalendarChartData(days = dayList)
 
     CalendarChart(
         data = calendarData,
         options = CalendarOptions(
             orientation = CalendarOrientation.Horizontal, // 横向布局
-            cellSize = 12f,
-            cellGap = 3f,
+            cellSize = 12.dp,
+            cellGap = 3.dp,
             visualMapColors = listOf(Color(0xFFEBEDF0), Color(0xFF9BE9A8), Color(0xFF40C463), Color(0xFF216E39))
         ),
-        style = ChartStyle.Light,
+        style = style,
         modifier = Modifier.fillMaxSize()
     )
 }
 ```
+
+#### 效果图预览
+| 亮色主题 (Light) | 暗色主题 (Dark) |
+| :---: | :---: |
+| ![日历图 亮色](images/doc_calendar_light.png) | ![日历图 暗色](images/doc_calendar_dark.png) |
 
 ---
 
@@ -264,30 +297,36 @@ import io.github.composechart.charts.gauge.*
 import io.github.composechart.core.style.ChartStyle
 
 @Composable
-fun GaugeChartDemo() {
-    val customStyle = ChartStyle.Light.copy(
-        gaugeOptions = ChartStyle.Light.gaugeOptions.copy(
+fun GaugeChartDemo(style: ChartStyle) {
+    val gaugeData = remember { GaugeChartData(value = 68.5f, min = 0f, max = 100f) }
+    
+    val customOptions = remember {
+        GaugeOptions(
             startAngle = 180f,
             sweepAngle = 180f,
             isProgress = true,      // 开启纯进度弧模式 (首尾胶囊圆角)
             showPointer = false,    // 隐藏中心机械指针
-            colors = listOf(
-                GaugeThreshold(0.3f, Color(0xFF91CC75)),
-                GaugeThreshold(0.7f, Color(0xFFFAC858)),
-                GaugeThreshold(1.0f, Color(0xFFEE6666))
+            axisLineColors = listOf(
+                0.3f to Color(0xFF91CC75),
+                0.7f to Color(0xFFFAC858),
+                1.0f to Color(0xFFEE6666)
             )
         )
-    )
+    }
 
     GaugeChart(
-        value = 68.5f,              // 当前刻度值 (在 min ~ max 之间)
-        min = 0f,
-        max = 100f,
-        style = customStyle,
+        data = gaugeData,
+        options = customOptions,
+        style = style,
         modifier = Modifier.fillMaxSize()
     )
 }
 ```
+
+#### 效果图预览
+| 亮色主题 (Light) | 暗色主题 (Dark) |
+| :---: | :---: |
+| ![仪表盘 亮色](images/doc_gauge_light.png) | ![仪表盘 暗色](images/doc_gauge_dark.png) |
 
 ---
 
@@ -303,7 +342,7 @@ import io.github.composechart.charts.radar.*
 import io.github.composechart.core.style.ChartStyle
 
 @Composable
-fun RadarChartDemo() {
+fun RadarChartDemo(style: ChartStyle) {
     val radarData = RadarChartData(
         indicators = listOf(
             RadarIndicator("销售", 6500f),
@@ -329,11 +368,16 @@ fun RadarChartDemo() {
 
     RadarChart(
         data = radarData,
-        style = ChartStyle.Light,
+        style = style,
         modifier = Modifier.fillMaxSize()
     )
 }
 ```
+
+#### 效果图预览
+| 亮色主题 (Light) | 暗色主题 (Dark) |
+| :---: | :---: |
+| ![雷达图 亮色](images/doc_radar_light.png) | ![雷达图 暗色](images/doc_radar_dark.png) |
 
 ---
 
@@ -348,7 +392,7 @@ import io.github.composechart.charts.kline.*
 import io.github.composechart.core.style.ChartStyle
 
 @Composable
-fun KLineChartDemo() {
+fun KLineChartDemo(style: ChartStyle) {
     val entries = listOf(
         KLineEntry("2026-06-01", 2320.26f, 2302.6f, 2287.3f, 2362.94f, 120000f),
         KLineEntry("2026-06-02", 2300f, 2291.3f, 2281.4f, 2311.68f, 85000f),
@@ -360,11 +404,16 @@ fun KLineChartDemo() {
 
     KLineChart(
         data = kLineData,
-        style = ChartStyle.Dark, // K 线在深色背景下显示更专业清晰
+        style = style,
         modifier = Modifier.fillMaxSize()
     )
 }
 ```
+
+#### 效果图预览
+| 亮色主题 (Light) | 暗色主题 (Dark) |
+| :---: | :---: |
+| ![K线图 亮色](images/doc_kline_light.png) | ![K线图 暗色](images/doc_kline_dark.png) |
 
 ---
 
@@ -381,7 +430,7 @@ import io.github.composechart.charts.scatter.*
 import io.github.composechart.core.style.ChartStyle
 
 @Composable
-fun ScatterChartDemo() {
+fun ScatterChartDemo(style: ChartStyle) {
     val scatterData = ScatterChartData(
         series = listOf(
             ScatterSeries(
@@ -407,11 +456,16 @@ fun ScatterChartDemo() {
 
     ScatterChart(
         data = scatterData,
-        style = ChartStyle.Light,
+        style = style,
         modifier = Modifier.fillMaxSize()
     )
 }
 ```
+
+#### 效果图预览
+| 亮色主题 (Light) | 暗色主题 (Dark) |
+| :---: | :---: |
+| ![散点图 亮色](images/doc_scatter_light.png) | ![散点图 暗色](images/doc_scatter_dark.png) |
 
 ---
 
@@ -427,30 +481,39 @@ import io.github.composechart.charts.boxplot.*
 import io.github.composechart.core.style.ChartStyle
 
 @Composable
-fun BoxplotChartDemo() {
+fun BoxplotChartDemo(style: ChartStyle) {
     val boxplotData = BoxplotChartData(
         xLabels = listOf("轴承A", "轴承B", "轴承C"),
         series = listOf(
             BoxplotSeries(
                 name = "工艺缺陷统计",
-                items = listOf(
-                    // 提供：最小值, 下四分位数, 中位数, 上四分位数, 最大值, 离群异常点列表
-                    BoxplotItem(655f, 850f, 940f, 980f, 1075f, outliers = listOf(600f, 1150f)),
-                    BoxplotItem(760f, 800f, 845f, 885f, 960f),
-                    BoxplotItem(700f, 750f, 810f, 880f, 940f, outliers = listOf(630f))
+                points = listOf(
+                    BoxplotPoint(655f, 850f, 940f, 980f, 1075f),
+                    BoxplotPoint(760f, 800f, 845f, 885f, 960f),
+                    BoxplotPoint(700f, 750f, 810f, 880f, 940f)
                 ),
-                color = Color(0xFF91CC75)
+                color = Color(0xFF91CC75),
+                outliers = listOf(
+                    BoxplotOutlier(xIndex = 0, value = 600f),
+                    BoxplotOutlier(xIndex = 0, value = 1150f),
+                    BoxplotOutlier(xIndex = 2, value = 630f)
+                )
             )
         )
     )
 
     BoxplotChart(
         data = boxplotData,
-        style = ChartStyle.Light,
+        style = style,
         modifier = Modifier.fillMaxSize()
     )
 }
 ```
+
+#### 效果图预览
+| 亮色主题 (Light) | 暗色主题 (Dark) |
+| :---: | :---: |
+| ![箱线图 亮色](images/doc_boxplot_light.png) | ![箱线图 暗色](images/doc_boxplot_dark.png) |
 
 ---
 
@@ -466,24 +529,29 @@ import io.github.composechart.charts.funnel.*
 import io.github.composechart.core.style.ChartStyle
 
 @Composable
-fun FunnelChartDemo() {
+fun FunnelChartDemo(style: ChartStyle) {
     val funnelData = FunnelChartData(
-        items = listOf(
-            FunnelItem("展现", 100f, Color(0xFF5470C6)),
-            FunnelItem("点击", 80f, Color(0xFF91CC75)),
-            FunnelItem("访问", 60f, Color(0xFFFAC858)),
-            FunnelItem("咨询", 40f, Color(0xFFEE6666)),
-            FunnelItem("订单", 20f, Color(0xFF73C0DE))
+        slices = listOf(
+            FunnelSlice("展现", 100f, Color(0xFF5470C6)),
+            FunnelSlice("点击", 80f, Color(0xFF91CC75)),
+            FunnelSlice("访问", 60f, Color(0xFFFAC858)),
+            FunnelSlice("咨询", 40f, Color(0xFFEE6666)),
+            FunnelSlice("订单", 20f, Color(0xFF73C0DE))
         )
     )
 
     FunnelChart(
         data = funnelData,
-        style = ChartStyle.Light,
+        style = style,
         modifier = Modifier.fillMaxSize()
     )
 }
 ```
+
+#### 效果图预览
+| 亮色主题 (Light) | 暗色主题 (Dark) |
+| :---: | :---: |
+| ![漏斗图 亮色](images/doc_funnel_light.png) | ![漏斗图 暗色](images/doc_funnel_dark.png) |
 
 ---
 
@@ -503,7 +571,7 @@ import io.github.composechart.charts.mixed.*
 import io.github.composechart.core.style.ChartStyle
 
 @Composable
-fun MixedChartDemo() {
+fun MixedChartDemo(style: ChartStyle) {
     val mixedData = MixedChartData(
         xLabels = listOf("2:00", "4:00", "6:00", "8:00", "10:00", "12:00"),
         // 绑定到左 Y 轴的柱状图数据
@@ -528,11 +596,16 @@ fun MixedChartDemo() {
 
     MixedChart(
         data = mixedData,
-        style = ChartStyle.Light,
+        style = style,
         modifier = Modifier.fillMaxSize()
     )
 }
 ```
+
+#### 效果图预览
+| 亮色主题 (Light) | 暗色主题 (Dark) |
+| :---: | :---: |
+| ![混合图 亮色](images/doc_mixed_light.png) | ![混合图 暗色](images/doc_mixed_dark.png) |
 
 ---
 
@@ -548,13 +621,13 @@ import io.github.composechart.charts.polar.*
 import io.github.composechart.core.style.ChartStyle
 
 @Composable
-fun PolarBarChartDemo() {
+fun PolarBarChartDemo(style: ChartStyle) {
     val polarData = PolarChartData(
         xLabels = listOf("分类一", "分类二", "分类三", "分类四"),
         series = listOf(
             PolarBarSeries(
                 name = "系列A",
-                values = listOf(80f, 60f, 95f, 45f),
+                values = listOf(80f, 60f, 95f, 45f).map { PolarBarValue(it) },
                 color = Color(0xFF73C0DE)
             )
         )
@@ -562,8 +635,13 @@ fun PolarBarChartDemo() {
 
     PolarBarChart(
         data = polarData,
-        style = ChartStyle.Light,
+        style = style,
         modifier = Modifier.fillMaxSize()
     )
 }
 ```
+
+#### 效果图预览
+| 亮色主题 (Light) | 暗色主题 (Dark) |
+| :---: | :---: |
+| ![极坐标图 亮色](images/doc_polar_light.png) | ![极坐标图 暗色](images/doc_polar_dark.png) |

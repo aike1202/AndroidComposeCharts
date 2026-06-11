@@ -58,7 +58,7 @@ object ScreenshotHelper {
         }
     }
 
-    private fun saveBitmap(context: Context, bitmap: Bitmap, fileName: String): Pair<Boolean, String> {
+    fun saveBitmap(context: Context, bitmap: Bitmap, fileName: String): Pair<Boolean, String> {
         val nameWithExtension = "$fileName.png"
         
         // Android Q (10) 及以上使用 MediaStore 插入到 Pictures 文件夹下，无需运行时权限
