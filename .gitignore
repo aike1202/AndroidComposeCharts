@@ -1,0 +1,40 @@
+# Built-in Git Ignore Rules for Android Projects
+# --------------------------------------------------
+
+# Gradle files
+.gradle/
+/local.properties
+local.properties
+
+# Android Studio / IntelliJ IDEA files
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Build artifacts (Ignoring all sub-module build directories)
+build/
+**/build/
+/build
+/captures
+.externalNativeBuild
+.cxx/
+
+# Output binaries
+*.apk
+*.aar
+*.ap_
+*.dex
+*.class
+
+# Log files
+*.log
+
+# OS generated files
+.DS_Store
+.DS_Store?
+Thumbs.db
+ehthumbs.db
+
+# Custom Folder Ignores
+.docs/

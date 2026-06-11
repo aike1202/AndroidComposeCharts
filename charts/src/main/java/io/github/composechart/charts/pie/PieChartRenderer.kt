@@ -1,0 +1,517 @@
+package io.github.composechart.charts.pie
+
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.Paint
+import androidx.compose.ui.graphics.PaintingStyle
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.text.TextMeasurer
+import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import io.github.composechart.core.data.CoordinateMapper
+import io.github.composechart.core.style.ChartStyle
+import io.github.composechart.core.style.RoseType
+import kotlin.math.cos
+import kotlin.math.min
+import kotlin.math.sin
+
+/**
+ * 纯 Compose Canvas 绘制的饼图/环形图/玫瑰图渲染器
+ */
+class PieChartRenderer(
+    private val mapper: CoordinateMapper,
+    private val style: ChartStyle,
+    private val textMeasurer: TextMeasurer,
+    private val density: Density,
+    private val animationProgress: Float = 1.0f
+) {
+    private val grid = mapper.gridRect
+
+    // 圆心与最大半径 (预留给指示线及标签的空间)
+    private val centerX = grid.left + grid.width / 2f
+    private val centerY = grid.top + grid.height / 2f
+    private val maxRadius = min(grid.width, grid.height) / 2f - 40.dp.value
+
+    // 暴露计算完毕的扇区参数，供交互碰撞检测使用
+    var sliceDrawInfos = listOf<SliceDrawInfo>()
+        private set
+
+    data class SliceDrawInfo(
+        val index: Int,
+        val slice: PieSlice,
+        val startAngle: Float,
+        val sweepAngle: Float,
+        val outerRadius: Float,
+        val innerRadius: Float,
+        val centerAngleRad: Double,
+        val isSelected: Boolean,
+        val animOffset: Offset
+    )
+
+    /**
+     * 计算各扇区绘制位置
+     */
+    fun calculateSlices(
+        slices: List<PieSlice>,
+        hiddenList: List<String>,
+        selectedIndex: Int?,
+        selectedOffsetPx: Float
+    ) {
+        val visibleSlices = slices.filter { it.name !in hiddenList }
+        if (visibleSlices.isEmpty()) {
+            sliceDrawInfos = emptyList()
+            return
+        }
+
+        val totalValue = visibleSlices.sumOf { it.value.toDouble() }.toFloat()
+        val totalCount = visibleSlices.size
+
+        val maxVal = visibleSlices.maxOfOrNull { it.value } ?: 1f
+        val minVal = visibleSlices.minOfOrNull { it.value } ?: 0f
+
+        val innerRadius = maxRadius * style.pieOptions.innerRadiusRatio
+        val roseType = style.pieOptions.roseType
+        val padAngle = style.pieOptions.padAngle
+
+        var currentAngle = style.pieOptions.startAngle
+
+        val infos = mutableListOf<SliceDrawInfo>()
+
+        slices.forEachIndexed { index, slice ->
+            if (slice.name in hiddenList) return@forEachIndexed
+
+            // 1. 圆心角计算
+            val sweepAngleRaw = if (roseType == RoseType.Radius) {
+                style.pieOptions.maxAngleSweep / totalCount
+            } else {
+                if (totalValue > 0f) (slice.value / totalValue) * style.pieOptions.maxAngleSweep else 0f
+            }
+            val sweepAngle = sweepAngleRaw * animationProgress
+
+            // 2. 外径大小计算
+            val outerRadius = if (roseType != RoseType.None) {
+                // 玫瑰图外径根据数据极值进行比例映射，留底比例设为 35%
+                val minRadius = innerRadius + (maxRadius - innerRadius) * 0.35f
+                if (maxVal > minVal) {
+                    minRadius + ((slice.value - minVal) / (maxVal - minVal)) * (maxRadius - minRadius)
+                } else {
+                    maxRadius
+                }
+            } else {
+                maxRadius
+            }
+
+            // 3. 选中项平移 Offset
+            val centerAngleRad = Math.toRadians((currentAngle + sweepAngle / 2f).toDouble())
+            val isSelected = selectedIndex == index
+            val animOffset = if (isSelected) {
+                Offset(
+                    (selectedOffsetPx * cos(centerAngleRad)).toFloat(),
+                    (selectedOffsetPx * sin(centerAngleRad)).toFloat()
+                )
+            } else Offset.Zero
+
+            // 4. 收缩空隙角 padAngle
+            val startDrawAngle = currentAngle + padAngle / 2f
+            val sweepDrawAngle = (sweepAngle - padAngle).coerceAtLeast(0.1f)
+
+            infos.add(
+                SliceDrawInfo(
+                    index = index,
+                    slice = slice,
+                    startAngle = startDrawAngle,
+                    sweepAngle = sweepDrawAngle,
+                    outerRadius = outerRadius,
+                    innerRadius = innerRadius,
+                    centerAngleRad = centerAngleRad,
+                    isSelected = isSelected,
+                    animOffset = animOffset
+                )
+            )
+
+            currentAngle += sweepAngleRaw
+        }
+        sliceDrawInfos = infos
+    }
+
+    /**
+     * 绘制扇区
+     */
+    fun drawSlices(drawScope: DrawScope) = with(drawScope) {
+        val cornerRadiusPx = with(density) { style.pieOptions.cornerRadius.toPx() }
+
+        // 确定背景隔离线的颜色
+        val bgClr = if (style.backgroundColor == Color.Transparent) {
+            val baseColor = style.legendOptions.textStyle.color
+            if (baseColor != Color.Unspecified && baseColor.red < 0.5f) Color.White else Color(0xFF1B1B1D)
+        } else style.backgroundColor
+
+        // 临时缓存，以供第二图层统一描边
+        val pathList = mutableListOf<Path>()
+
+        sliceDrawInfos.forEach { info ->
+            if (info.sweepAngle <= 0f) return@forEach
+
+            val path = Path()
+            val xc = centerX + info.animOffset.x
+            val yc = centerY + info.animOffset.y
+            val rOut = info.outerRadius
+            val rIn = info.innerRadius
+
+            // 限制圆角半径，防止当扫掠角过小或者厚度不够时圆角重叠畸变
+            var realRc = cornerRadiusPx
+            if (realRc > 0f) {
+                val maxRcHeight = (rOut - rIn) / 2f
+                val sweepRad = Math.toRadians(info.sweepAngle.toDouble())
+                val maxRcArcOut = (rOut * sweepRad / 2f).toFloat()
+                val maxRcArcIn = if (rIn > 0f) {
+                    (rIn * sweepRad / 2f).toFloat()
+                } else {
+                    maxRcArcOut
+                }
+                realRc = realRc.coerceAtMost(maxRcHeight).coerceAtMost(maxRcArcOut).coerceAtMost(maxRcArcIn)
+            }
+
+            val startAngle = info.startAngle
+            val sweepAngle = info.sweepAngle
+            val endAngle = startAngle + sweepAngle
+
+            val startRad = Math.toRadians(startAngle.toDouble())
+            val endRad = Math.toRadians(endAngle.toDouble())
+
+            if (realRc > 0f) {
+                // 计算内外径上圆角对应的偏转角（弧度）
+                val daOut = (realRc / rOut).toDouble()
+                val daIn = if (rIn > 0f) (realRc / rIn).toDouble() else 0.0
+
+                val daOutDeg = Math.toDegrees(daOut).toFloat()
+                val daInDeg = Math.toDegrees(daIn).toFloat()
+
+                // 直角顶点 (用于贝塞尔曲线控制点)
+                val vInStart = Offset(xc + rIn * cos(startRad).toFloat(), yc + rIn * sin(startRad).toFloat())
+                val vOutStart = Offset(xc + rOut * cos(startRad).toFloat(), yc + rOut * sin(startRad).toFloat())
+                val vOutEnd = Offset(xc + rOut * cos(endRad).toFloat(), yc + rOut * sin(endRad).toFloat())
+                val vInEnd = Offset(xc + rIn * cos(endRad).toFloat(), yc + rIn * sin(endRad).toFloat())
+
+                // 缩进点：径向直线端
+                val lInStart = Offset(xc + (rIn + realRc) * cos(startRad).toFloat(), yc + (rIn + realRc) * sin(startRad).toFloat())
+                val lOutStart = Offset(xc + (rOut - realRc) * cos(startRad).toFloat(), yc + (rOut - realRc) * sin(startRad).toFloat())
+                val lOutEnd = Offset(xc + (rOut - realRc) * cos(endRad).toFloat(), yc + (rOut - realRc) * sin(endRad).toFloat())
+                val lInEnd = Offset(xc + (rIn + realRc) * cos(endRad).toFloat(), yc + (rIn + realRc) * sin(endRad).toFloat())
+
+                // 缩进点：大圆弧端
+                val aOutStartAngle = startAngle + daOutDeg
+                val aOutEndAngle = endAngle - daOutDeg
+                val aOutStart = Offset(
+                    xc + rOut * cos(Math.toRadians(aOutStartAngle.toDouble())).toFloat(),
+                    yc + rOut * sin(Math.toRadians(aOutStartAngle.toDouble())).toFloat()
+                )
+
+                if (rIn > 0f) {
+                    // 缩进点：内圆弧端
+                    val aInStartAngle = startAngle + daInDeg
+                    val aInEndAngle = endAngle - daInDeg
+                    val aInStart = Offset(
+                        xc + rIn * cos(Math.toRadians(aInStartAngle.toDouble())).toFloat(),
+                        yc + rIn * sin(Math.toRadians(aInStartAngle.toDouble())).toFloat()
+                    )
+                    val aInEnd = Offset(
+                        xc + rIn * cos(Math.toRadians(aInEndAngle.toDouble())).toFloat(),
+                        yc + rIn * sin(Math.toRadians(aInEndAngle.toDouble())).toFloat()
+                    )
+
+                    // 1. 起点定位在内径起始圆弧端
+                    path.moveTo(aInStart.x, aInStart.y)
+                    // 2. 绘制内径起始角的圆角
+                    path.quadraticTo(vInStart.x, vInStart.y, lInStart.x, lInStart.y)
+                    // 3. 连直线到外径起始直角缩进点
+                    path.lineTo(lOutStart.x, lOutStart.y)
+                    // 4. 绘制外径起始角的圆角
+                    path.quadraticTo(vOutStart.x, vOutStart.y, aOutStart.x, aOutStart.y)
+                    // 5. 绘制外圆弧
+                    val outerRect = Rect(xc - rOut, yc - rOut, xc + rOut, yc + rOut)
+                    path.arcTo(outerRect, aOutStartAngle, aOutEndAngle - aOutStartAngle, false)
+                    // 6. 绘制外径结束角的圆角
+                    path.quadraticTo(vOutEnd.x, vOutEnd.y, lOutEnd.x, lOutEnd.y)
+                    // 7. 连直线到内径结束直角缩进点
+                    path.lineTo(lInEnd.x, lInEnd.y)
+                    // 8. 绘制内径结束角的圆角
+                    path.quadraticTo(vInEnd.x, vInEnd.y, aInEnd.x, aInEnd.y)
+                    // 9. 绘制内圆弧并闭合
+                    val innerRect = Rect(xc - rIn, yc - rIn, xc + rIn, yc + rIn)
+                    path.arcTo(innerRect, aInEndAngle, aInStartAngle - aInEndAngle, false)
+                } else {
+                    // 1. 起点定位在圆心
+                    path.moveTo(xc, yc)
+                    // 2. 连线到外侧起始直角缩进点
+                    path.lineTo(lOutStart.x, lOutStart.y)
+                    // 3. 绘制外径起始角圆角
+                    path.quadraticTo(vOutStart.x, vOutStart.y, aOutStart.x, aOutStart.y)
+                    // 4. 绘制外圆弧
+                    val outerRect = Rect(xc - rOut, yc - rOut, xc + rOut, yc + rOut)
+                    path.arcTo(outerRect, aOutStartAngle, aOutEndAngle - aOutStartAngle, false)
+                    // 5. 绘制外径结束角圆角
+                    path.quadraticTo(vOutEnd.x, vOutEnd.y, lOutEnd.x, lOutEnd.y)
+                    // 6. 连线回圆心
+                    path.lineTo(xc, yc)
+                }
+                path.close()
+            } else {
+                // 原有的直角绘制逻辑，保证完全无圆角时没有任何额外的贝塞尔曲线误差，百分百精确
+                val p1X = xc + rIn * cos(startRad).toFloat()
+                val p1Y = yc + rIn * sin(startRad).toFloat()
+                path.moveTo(p1X, p1Y)
+
+                val p2X = xc + rOut * cos(startRad).toFloat()
+                val p2Y = yc + rOut * sin(startRad).toFloat()
+                path.lineTo(p2X, p2Y)
+
+                val outerRect = Rect(xc - rOut, yc - rOut, xc + rOut, yc + rOut)
+                path.arcTo(
+                    rect = outerRect,
+                    startAngleDegrees = startAngle,
+                    sweepAngleDegrees = sweepAngle,
+                    forceMoveTo = false
+                )
+
+                val p4X = xc + rIn * cos(endRad).toFloat()
+                val p4Y = yc + rIn * sin(endRad).toFloat()
+                path.lineTo(p4X, p4Y)
+
+                if (rIn > 0f) {
+                    val innerRect = Rect(xc - rIn, yc - rIn, xc + rIn, yc + rIn)
+                    path.arcTo(
+                        rect = innerRect,
+                        startAngleDegrees = endAngle,
+                        sweepAngleDegrees = -sweepAngle,
+                        forceMoveTo = false
+                    )
+                } else {
+                    path.lineTo(xc, yc)
+                }
+                path.close()
+            }
+
+            pathList.add(path)
+
+            // 第一步：绘制彩色填充 (Fill)
+            drawIntoCanvas { canvas ->
+                val paint = Paint().apply {
+                    color = info.slice.color
+                    style = PaintingStyle.Fill
+                }
+                canvas.drawPath(path, paint)
+            }
+        }
+
+        // 第二步：统一绘制背景描边边框 (Stroke)，防止后画的 Fill 遮挡/截断先画的 Border
+        val borderWidthPx = with(density) { style.pieOptions.borderWidth.toPx() }
+        if (borderWidthPx > 0f) {
+            val borderClr = style.pieOptions.borderColor ?: bgClr
+            pathList.forEach { path ->
+                drawIntoCanvas { canvas ->
+                    val borderPaint = Paint().apply {
+                        color = borderClr
+                        style = PaintingStyle.Stroke
+                        strokeWidth = borderWidthPx
+                    }
+                    canvas.drawPath(path, borderPaint)
+                }
+            }
+        }
+
+        // 第三步：统一绘制 padAngle 背景分割线，防止后画的 Fill 遮挡/截断先画的 padAngle 线
+        if (style.pieOptions.padAngle > 0f) {
+            sliceDrawInfos.forEach { info ->
+                if (info.sweepAngle <= 0f) return@forEach
+                val xc = centerX + info.animOffset.x
+                val yc = centerY + info.animOffset.y
+                val rOut = info.outerRadius
+                val rIn = info.innerRadius
+
+                val padAngle = style.pieOptions.padAngle
+                val boundaryAngle = info.startAngle - padAngle / 2f
+                val bRad = Math.toRadians(boundaryAngle.toDouble())
+
+                val pStart = Offset(xc + rIn * cos(bRad).toFloat(), yc + rIn * sin(bRad).toFloat())
+                val pEnd = Offset(xc + rOut * cos(bRad).toFloat(), yc + rOut * sin(bRad).toFloat())
+
+                drawLine(
+                    color = bgClr,
+                    start = pStart,
+                    end = pEnd,
+                    strokeWidth = with(density) { padAngle.dp.toPx() }
+                )
+            }
+        }
+    }
+
+    /**
+     * 绘制引导折线与百分比文本
+     */
+    fun drawLabelsAndLines(drawScope: DrawScope, totalValue: Float) = with(drawScope) {
+        if (!style.pieOptions.showLabel || sliceDrawInfos.isEmpty()) return@with
+
+        val lineLength1 = with(density) { style.pieOptions.labelLineLength1.toPx() }
+        val lineLength2 = with(density) { style.pieOptions.labelLineLength2.toPx() }
+        val lineWidth = with(density) { style.pieOptions.labelLineWidth.toPx() }
+        
+        // 确保字体颜色在暗色/浅色背景下高可读
+        val baseColor = style.legendOptions.textStyle.color
+        val labelColor = if (baseColor == Color.Unspecified) {
+            if (style.backgroundColor == Color.Transparent || style.backgroundColor.red > 0.5f) Color.Black else Color.White
+        } else baseColor
+        val labelStyle = style.legendOptions.textStyle.copy(fontSize = 11.sp, color = labelColor)
+
+        // 收集待渲染的文字及坐标
+        val labelItems = sliceDrawInfos.map { info ->
+            val xc = centerX + info.animOffset.x
+            val yc = centerY + info.animOffset.y
+            val rOut = info.outerRadius
+
+            // 起点 (外径边缘)
+            val startX = xc + rOut * cos(info.centerAngleRad).toFloat()
+            val startY = yc + rOut * sin(info.centerAngleRad).toFloat()
+
+            // 转折点 (延伸斜线段)
+            val midX = xc + (rOut + lineLength1) * cos(info.centerAngleRad).toFloat()
+            val midY = yc + (rOut + lineLength1) * sin(info.centerAngleRad).toFloat()
+
+            // 是否在圆心左侧
+            val isLeft = cos(info.centerAngleRad) < 0
+
+            // 文本内容测算
+            val percent = if (totalValue > 0f) (info.slice.value / totalValue) * 100f else 0f
+            val text = "${info.slice.name} (${String.format("%.1f", percent)}%)"
+            val textLayout = textMeasurer.measure(text = text, style = labelStyle)
+            val textWidth = textLayout.size.width.toFloat()
+            val textHeight = textLayout.size.height.toFloat()
+
+            // 水平折线终点
+            val dir = if (isLeft) -1f else 1f
+            val endX = midX + lineLength2 * dir
+            val endY = midY
+
+            LabelLayoutItem(
+                info = info,
+                isLeft = isLeft,
+                startPt = Offset(startX, startY),
+                midPt = Offset(midX, midY),
+                endPt = Offset(endX, endY),
+                textY = endY - textHeight / 2f,
+                textHeight = textHeight,
+                textWidth = textWidth,
+                text = text,
+                textLayout = textLayout
+            )
+        }
+
+        // 分左右侧进行防碰撞推挤调整
+        val leftGroup = labelItems.filter { it.isLeft }.sortedBy { it.textY }
+        val rightGroup = labelItems.filter { !it.isLeft }.sortedBy { it.textY }
+
+        adjustLabelsY(leftGroup)
+        adjustLabelsY(rightGroup)
+
+        // 循环绘制所有项目
+        labelItems.forEach { item ->
+            val lineColor = style.pieOptions.labelLineColor ?: item.info.slice.color
+
+            // 1. 画折线
+            drawLine(
+                color = lineColor,
+                start = item.startPt,
+                end = item.midPt,
+                strokeWidth = lineWidth
+            )
+            drawLine(
+                color = lineColor,
+                start = item.midPt,
+                end = item.endPt,
+                strokeWidth = lineWidth
+            )
+
+            // 2. 画文本
+            val textX = if (item.isLeft) {
+                item.endPt.x - item.textWidth - 4.dp.toPx()
+            } else {
+                item.endPt.x + 4.dp.toPx()
+            }
+
+            drawText(
+                textLayoutResult = item.textLayout,
+                topLeft = Offset(textX, item.textY)
+            )
+        }
+    }
+
+    /**
+     * Y 轴排序文字重叠调整算法
+     */
+    private fun adjustLabelsY(group: List<LabelLayoutItem>) {
+        if (group.isEmpty()) return
+
+        val minGap = with(density) { 16.dp.toPx() } // 文字行间最小间距
+        val bottomLimit = grid.bottom - minGap
+        val topLimit = grid.top + minGap
+
+        // 1. 正向推挤 (从上至下)
+        for (i in 1 until group.size) {
+            val prev = group[i - 1]
+            val curr = group[i]
+            if (curr.textY < prev.textY + minGap) {
+                curr.textY = prev.textY + minGap
+            }
+        }
+
+        // 2. 溢出反向推挤 (自下而上)
+        if (group.last().textY > bottomLimit) {
+            group.last().textY = bottomLimit
+            for (i in (group.size - 2) downTo 0) {
+                val next = group[i + 1]
+                val curr = group[i]
+                if (curr.textY > next.textY - minGap) {
+                    curr.textY = next.textY - minGap
+                }
+            }
+        }
+
+        // 3. 顶部越界夹逼校验
+        if (group.first().textY < topLimit) {
+            group.first().textY = topLimit
+            for (i in 1 until group.size) {
+                val prev = group[i - 1]
+                val curr = group[i]
+                if (curr.textY < prev.textY + minGap) {
+                    curr.textY = prev.textY + minGap
+                }
+            }
+        }
+
+        // 4. 重对齐引导线端点
+        group.forEach { item ->
+            val newEndY = item.textY + item.textHeight / 2f
+            item.endPt = Offset(item.endPt.x, newEndY)
+            item.midPt = Offset(item.midPt.x, newEndY) // 同步调整转折点 Y 坐标以保持第二段折线绝对水平
+        }
+    }
+
+    private class LabelLayoutItem(
+        val info: SliceDrawInfo,
+        val isLeft: Boolean,
+        val startPt: Offset,
+        var midPt: Offset, // 改为 var 以支持在防重叠微调时重对齐其 Y 坐标
+        var endPt: Offset,
+        var textY: Float,
+        val textHeight: Float,
+        val textWidth: Float,
+        val text: String,
+        val textLayout: androidx.compose.ui.text.TextLayoutResult
+    )
+}
