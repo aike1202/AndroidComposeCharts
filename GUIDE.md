@@ -75,9 +75,7 @@ fun LineChartDemo(style: ChartStyle) {
 ```
 
 #### 效果图预览
-| 亮色主题 (Light) | 暗色主题 (Dark) |
-| :---: | :---: |
-| ![折线图 亮色](docs_screenshots/doc_line_light.png) | ![折线图 暗色](docs_screenshots/doc_line_dark.png) |
+![折线图 亮色](docs_screenshots/doc_line_light.png)
 
 ---
 
@@ -130,9 +128,7 @@ fun BarChartDemo(style: ChartStyle) {
 ```
 
 #### 效果图预览
-| 亮色主题 (Light) | 暗色主题 (Dark) |
-| :---: | :---: |
-| ![柱状图 亮色](docs_screenshots/doc_bar_light.png) | ![柱状图 暗色](docs_screenshots/doc_bar_dark.png) |
+![柱状图 亮色](docs_screenshots/doc_bar_light.png)
 
 ---
 
@@ -177,9 +173,7 @@ fun PieChartDemo(style: ChartStyle) {
 ```
 
 #### 效果图预览
-| 亮色主题 (Light) | 暗色主题 (Dark) |
-| :---: | :---: |
-| ![饼图 亮色](docs_screenshots/doc_pie_light.png) | ![饼图 暗色](docs_screenshots/doc_pie_dark.png) |
+![饼图 亮色](docs_screenshots/doc_pie_light.png)
 
 ---
 
@@ -226,9 +220,7 @@ fun Bar3DChartDemo(style: ChartStyle) {
 ```
 
 #### 效果图预览
-| 亮色主题 (Light) | 暗色主题 (Dark) |
-| :---: | :---: |
-| ![3D图 亮色](docs_screenshots/doc_bar3d_light.png) | ![3D图 暗色](docs_screenshots/doc_bar3d_dark.png) |
+![3D图 亮色](docs_screenshots/doc_bar3d_light.png)
 
 ---
 
@@ -279,9 +271,7 @@ fun CalendarChartDemo(style: ChartStyle) {
 ```
 
 #### 效果图预览
-| 亮色主题 (Light) | 暗色主题 (Dark) |
-| :---: | :---: |
-| ![日历图 亮色](docs_screenshots/doc_calendar_light.png) | ![日历图 暗色](docs_screenshots/doc_calendar_dark.png) |
+![日历图 亮色](docs_screenshots/doc_calendar_light.png)
 
 ---
 
@@ -324,9 +314,7 @@ fun GaugeChartDemo(style: ChartStyle) {
 ```
 
 #### 效果图预览
-| 亮色主题 (Light) | 暗色主题 (Dark) |
-| :---: | :---: |
-| ![仪表盘 亮色](docs_screenshots/doc_gauge_light.png) | ![仪表盘 暗色](docs_screenshots/doc_gauge_dark.png) |
+![仪表盘 亮色](docs_screenshots/doc_gauge_light.png)
 
 ---
 
@@ -375,9 +363,7 @@ fun RadarChartDemo(style: ChartStyle) {
 ```
 
 #### 效果图预览
-| 亮色主题 (Light) | 暗色主题 (Dark) |
-| :---: | :---: |
-| ![雷达图 亮色](docs_screenshots/doc_radar_light.png) | ![雷达图 暗色](docs_screenshots/doc_radar_dark.png) |
+![雷达图 亮色](docs_screenshots/doc_radar_light.png)
 
 ---
 
@@ -411,9 +397,7 @@ fun KLineChartDemo(style: ChartStyle) {
 ```
 
 #### 效果图预览
-| 亮色主题 (Light) | 暗色主题 (Dark) |
-| :---: | :---: |
-| ![K线图 亮色](docs_screenshots/doc_kline_light.png) | ![K线图 暗色](docs_screenshots/doc_kline_dark.png) |
+![K线图 亮色](docs_screenshots/doc_kline_light.png)
 
 ---
 
@@ -463,9 +447,7 @@ fun ScatterChartDemo(style: ChartStyle) {
 ```
 
 #### 效果图预览
-| 亮色主题 (Light) | 暗色主题 (Dark) |
-| :---: | :---: |
-| ![散点图 亮色](docs_screenshots/doc_scatter_light.png) | ![散点图 暗色](docs_screenshots/doc_scatter_dark.png) |
+![散点图 亮色](docs_screenshots/doc_scatter_light.png)
 
 ---
 
@@ -511,9 +493,7 @@ fun BoxplotChartDemo(style: ChartStyle) {
 ```
 
 #### 效果图预览
-| 亮色主题 (Light) | 暗色主题 (Dark) |
-| :---: | :---: |
-| ![箱线图 亮色](docs_screenshots/doc_boxplot_light.png) | ![箱线图 暗色](docs_screenshots/doc_boxplot_dark.png) |
+![箱线图 亮色](docs_screenshots/doc_boxplot_light.png)
 
 ---
 
@@ -549,9 +529,7 @@ fun FunnelChartDemo(style: ChartStyle) {
 ```
 
 #### 效果图预览
-| 亮色主题 (Light) | 暗色主题 (Dark) |
-| :---: | :---: |
-| ![漏斗图 亮色](docs_screenshots/doc_funnel_light.png) | ![漏斗图 暗色](docs_screenshots/doc_funnel_dark.png) |
+![漏斗图 亮色](docs_screenshots/doc_funnel_light.png)
 
 ---
 
@@ -603,9 +581,7 @@ fun MixedChartDemo(style: ChartStyle) {
 ```
 
 #### 效果图预览
-| 亮色主题 (Light) | 暗色主题 (Dark) |
-| :---: | :---: |
-| ![混合图 亮色](docs_screenshots/doc_mixed_light.png) | ![混合图 暗色](docs_screenshots/doc_mixed_dark.png) |
+![混合图 亮色](docs_screenshots/doc_mixed_light.png)
 
 ---
 
@@ -642,6 +618,4 @@ fun PolarBarChartDemo(style: ChartStyle) {
 ```
 
 #### 效果图预览
-| 亮色主题 (Light) | 暗色主题 (Dark) |
-| :---: | :---: |
-| ![极坐标图 亮色](docs_screenshots/doc_polar_light.png) | ![极坐标图 暗色](docs_screenshots/doc_polar_dark.png) |
+![极坐标图 亮色](docs_screenshots/doc_polar_light.png)
