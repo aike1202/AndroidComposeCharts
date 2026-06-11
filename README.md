@@ -155,7 +155,7 @@ val lineChartData = LineChartData(
 )
 LineChart(data = lineChartData, modifier = Modifier.fillMaxSize())
 ```
-![折线图预览](docs_screenshots/doc_line_light.png)
+<img src="docs_screenshots/doc_line_light.png" width="360" alt="折线图预览" />
 
 ### 2. 柱状图 (BarChart)
 ```kotlin
@@ -186,7 +186,7 @@ val barChartData = BarChartData(
 )
 BarChart(data = barChartData, modifier = Modifier.fillMaxSize())
 ```
-![柱状图预览](docs_screenshots/doc_bar_light.png)
+<img src="docs_screenshots/doc_bar_light.png" width="360" alt="柱状图预览" />
 
 ### 3. 饼图 / 环形图 (PieChart)
 ```kotlin
@@ -207,7 +207,7 @@ val customStyle = style.copy(
 )
 PieChart(data = pieChartData, style = customStyle, modifier = Modifier.fillMaxSize())
 ```
-![饼图预览](docs_screenshots/doc_pie_light.png)
+<img src="docs_screenshots/doc_pie_light.png" width="360" alt="饼图预览" />
 
 ### 4. 3D 柱状打卡图 (Bar3DChart)
 ```kotlin
@@ -230,7 +230,7 @@ val options = Bar3DOptions(
 )
 Bar3DChart(data = bar3DChartData, options = options, modifier = Modifier.fillMaxSize())
 ```
-![3D柱状打卡图预览](docs_screenshots/doc_bar3d_light.png)
+<img src="docs_screenshots/doc_bar3d_light.png" width="360" alt="3D柱状打卡图预览" />
 
 ---
 
