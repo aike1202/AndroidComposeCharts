@@ -118,37 +118,69 @@
 
 ## 🛠 快速上手
 
-在您的 Compose 项目中，只需几行代码即可流畅渲染一个 3D 柱体打卡图：
+这里提供了最常用的四大基础图表在 Jetpack Compose 中的**最简化接入代码**。
 
+> 💡 **想要获取所有 13 大类图表（如雷达图、日历热力图、K线图、极坐标图等）更详尽的挂载示例与高级参数微调选项？**
+>
+> 请阅读：👉 **[AndroidComposeCharts 图表全量使用手册 (GUIDE.md)](GUIDE.md)**
+
+### 1. 折线图 (LineChart)
 ```kotlin
-// 1. 准备三维打卡数据集
-val points = listOf(
-    Bar3DPoint(xIndex = 8, yIndex = 1, zValue = 9.5f), // 早上 8 点，星期二，打卡热度 9.5
-    Bar3DPoint(xIndex = 12, yIndex = 5, zValue = 12.0f) // 中午 12 点，星期五，打卡热度 12.0
+val lineData = LineChartData(
+    xLabels = listOf("周一", "周二", "周三"),
+    series = listOf(
+        LineSeries(
+            name = "邮件营销",
+            points = listOf(LinePoint(0f, 120f), LinePoint(1f, 132f), LinePoint(2f, 101f)),
+            color = Color(0xFF5470C6)
+        )
+    )
 )
-val chartData = Bar3DChartData(
-    xAxisLabels = listOf("12a", "1a", "2a", "3a", ..., "11p"), // 24小时轴
-    yAxisLabels = listOf("周日", "周一", ..., "周六"), // 7天轴
+LineChart(data = lineData, modifier = Modifier.fillMaxSize())
+```
+
+### 2. 柱状图 (BarChart)
+```kotlin
+val barData = BarChartData(
+    xLabels = listOf("一月", "二月", "三月"),
+    series = listOf(
+        BarSeries(
+            name = "蒸发量",
+            values = listOf(BarValue(2.0f), BarValue(4.9f), BarValue(7.0f)),
+            color = Color(0xFF5470C6)
+        )
+    )
+)
+BarChart(data = barData, modifier = Modifier.fillMaxSize())
+```
+
+### 3. 饼图 / 环形图 (PieChart)
+```kotlin
+val pieData = PieChartData(
+    slices = listOf(
+        PieSlice("搜索引擎", 1048f, Color(0xFF5470C6)),
+        PieSlice("直接输入", 735f, Color(0xFF91CC75))
+    )
+)
+PieChart(data = pieData, modifier = Modifier.fillMaxSize())
+```
+
+### 4. 3D 柱状打卡图 (Bar3DChart)
+```kotlin
+val points = listOf(
+    Bar3DPoint(xIndex = 0, yIndex = 0, zValue = 5f),
+    Bar3DPoint(xIndex = 2, yIndex = 0, zValue = 12f)
+)
+val bar3DData = Bar3DChartData(
+    xAxisLabels = listOf("1a", "2a", "3a"),
+    yAxisLabels = listOf("周六", "周日"),
     points = points
 )
-
-// 2. 挂载 UI 交互组件
-Bar3DChart(
-    data = chartData,
-    style = ChartStyle.Default.copy(
-        backgroundColor = Color(0xFF1B1B1D) // 深色背景支持
-    ),
-    options = Bar3DOptions(
-        initialYaw = -45f,
-        initialPitch = 30f,
-        initialZoom = 1.0f,
-        barWidthRatio = 0.6f
-    ),
-    modifier = Modifier.fillMaxSize()
-)
+Bar3DChart(data = bar3DData, modifier = Modifier.fillMaxSize())
 ```
 
 ---
+
 
 ## 📐 核心设计架构原则
 
