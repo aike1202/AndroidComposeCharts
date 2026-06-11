@@ -28,13 +28,6 @@ class RadarChartRenderer(
     private val density: Density,
     private val animationProgress: Float = 1.0f
 ) {
-    private val grid = mapper.gridRect
-
-    // 计算圆心物理坐标和最大外径半径 (预留 44dp 给四周指标文字标签)
-    private val centerX = grid.left + grid.width / 2f
-    private val centerY = grid.top + grid.height / 2f
-    private val maxRadius = min(grid.width, grid.height) / 2f - 44.dp.value
-
     /**
      * 执行雷达图绘制。
      *
@@ -45,8 +38,21 @@ class RadarChartRenderer(
     fun draw(
         drawScope: DrawScope,
         indicators: List<RadarIndicator>,
-        visibleSeries: List<RadarSeries>
+        visibleSeries: List<RadarSeries>,
+        animProgress: Float = 1.0f
     ) = with(drawScope) {
+        val gridRect = Rect(
+            left = with(density) { style.gridOptions.left.toPx() },
+            top = with(density) { style.gridOptions.top.toPx() },
+            right = size.width - with(density) { style.gridOptions.right.toPx() },
+            bottom = size.height - with(density) { style.gridOptions.bottom.toPx() }
+        )
+        val centerX = gridRect.left + gridRect.width / 2f
+        val centerY = gridRect.top + gridRect.height / 2f
+        val maxRadius = min(gridRect.width, gridRect.height) / 2f - with(density) { 44.dp.toPx() }
+
+
+
         val dimension = indicators.size
         if (dimension < 3) return@with // 多边形雷达至少需要 3 个维度
 
@@ -139,7 +145,7 @@ class RadarChartRenderer(
                 // 对独立轴极值作百分比转换映射
                 val range = ind.max - ind.min
                 val ratio = if (range > 0f) (rawVal - ind.min) / range else 0f
-                val lengthRadius = maxRadius * ratio.coerceIn(0f, 1f) * animationProgress
+                val lengthRadius = maxRadius * ratio.coerceIn(0f, 1f) * animProgress
 
                 val vx = centerX + lengthRadius * cos(theta).toFloat()
                 val vy = centerY + lengthRadius * sin(theta).toFloat()

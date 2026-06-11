@@ -320,6 +320,7 @@ fun BarChart(
                         horizontal = horizontal
                     )
             ) {
+                val animProgress = animationProgress.value
                 // 4.1 绘制网格背景
                 coordinatePlotter.drawBackground(this)
 

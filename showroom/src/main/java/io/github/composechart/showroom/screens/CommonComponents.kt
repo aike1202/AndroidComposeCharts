@@ -20,11 +20,14 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+
+val LocalShowControlPanel = compositionLocalOf { true }
 
 /**
  * 演示大厅控制面板公用容器卡片
@@ -34,6 +37,7 @@ fun ControlPanel(
     modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit
 ) {
+    if (!LocalShowControlPanel.current) return
     Card(
         modifier = modifier
             .fillMaxWidth()

@@ -2,6 +2,7 @@ package io.github.composechart.charts.pie
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Paint
@@ -31,12 +32,13 @@ class PieChartRenderer(
     private val density: Density,
     private val animationProgress: Float = 1.0f
 ) {
-    private val grid = mapper.gridRect
-
-    // 圆心与最大半径 (预留给指示线及标签的空间)
-    private val centerX = grid.left + grid.width / 2f
-    private val centerY = grid.top + grid.height / 2f
-    private val maxRadius = min(grid.width, grid.height) / 2f - 40.dp.value
+    private var grid = Rect.Zero
+    var centerX = 0f
+        private set
+    var centerY = 0f
+        private set
+    var maxRadius = 0f
+        private set
 
     // 暴露计算完毕的扇区参数，供交互碰撞检测使用
     var sliceDrawInfos = listOf<SliceDrawInfo>()
@@ -61,8 +63,18 @@ class PieChartRenderer(
         slices: List<PieSlice>,
         hiddenList: List<String>,
         selectedIndex: Int?,
-        selectedOffsetPx: Float
+        selectedOffsetPx: Float,
+        animProgress: Float = 1.0f,
+        gridRect: Rect = Rect.Zero
     ) {
+        if (gridRect != Rect.Zero) {
+            grid = gridRect
+            centerX = gridRect.left + gridRect.width / 2f
+            centerY = gridRect.top + gridRect.height / 2f
+            maxRadius = min(gridRect.width, gridRect.height) / 2f - with(density) { 40.dp.toPx() }
+
+        }
+
         val visibleSlices = slices.filter { it.name !in hiddenList }
         if (visibleSlices.isEmpty()) {
             sliceDrawInfos = emptyList()
@@ -92,7 +104,7 @@ class PieChartRenderer(
             } else {
                 if (totalValue > 0f) (slice.value / totalValue) * style.pieOptions.maxAngleSweep else 0f
             }
-            val sweepAngle = sweepAngleRaw * animationProgress
+            val sweepAngle = sweepAngleRaw * animProgress
 
             // 2. 外径大小计算
             val outerRadius = if (roseType != RoseType.None) {
@@ -156,6 +168,7 @@ class PieChartRenderer(
         val pathList = mutableListOf<Path>()
 
         sliceDrawInfos.forEach { info ->
+
             if (info.sweepAngle <= 0f) return@forEach
 
             val path = Path()
@@ -263,7 +276,32 @@ class PieChartRenderer(
                 }
                 path.close()
             } else {
-                // 原有的直角绘制逻辑，保证完全无圆角时没有任何额外的贝塞尔曲线误差，百分百精确
+                // 用最稳健的原生 drawArc 绘制彩色填充，免去任何 Path 兼容性或精度造成的渲染失败
+                if (rIn > 0f) {
+                    val thickness = rOut - rIn
+                    val midRadius = (rOut + rIn) / 2f
+                    drawArc(
+                        color = info.slice.color,
+                        startAngle = startAngle,
+                        sweepAngle = sweepAngle,
+                        useCenter = false,
+                        topLeft = Offset(xc - midRadius, yc - midRadius),
+                        size = Size(midRadius * 2f, midRadius * 2f),
+                        style = androidx.compose.ui.graphics.drawscope.Stroke(width = thickness)
+                    )
+                } else {
+                    drawArc(
+                        color = info.slice.color,
+                        startAngle = startAngle,
+                        sweepAngle = sweepAngle,
+                        useCenter = true,
+                        topLeft = Offset(xc - rOut, yc - rOut),
+                        size = Size(rOut * 2f, rOut * 2f),
+                        style = androidx.compose.ui.graphics.drawscope.Fill
+                    )
+                }
+
+                // 依然构建 path，留作后面的边框 Stroke（如果配置了 borderWidth 的话）
                 val p1X = xc + rIn * cos(startRad).toFloat()
                 val p1Y = yc + rIn * sin(startRad).toFloat()
                 path.moveTo(p1X, p1Y)
@@ -300,13 +338,13 @@ class PieChartRenderer(
 
             pathList.add(path)
 
-            // 第一步：绘制彩色填充 (Fill)
-            drawIntoCanvas { canvas ->
-                val paint = Paint().apply {
-                    color = info.slice.color
-                    style = PaintingStyle.Fill
-                }
-                canvas.drawPath(path, paint)
+            // 第一步：如果是圆角路径，则通过 drawPath 绘制彩色填充；直角扇区已用 drawArc 画过
+            if (realRc > 0f) {
+                drawPath(
+                    path = path,
+                    color = info.slice.color,
+                    style = androidx.compose.ui.graphics.drawscope.Fill
+                )
             }
         }
 
@@ -315,14 +353,11 @@ class PieChartRenderer(
         if (borderWidthPx > 0f) {
             val borderClr = style.pieOptions.borderColor ?: bgClr
             pathList.forEach { path ->
-                drawIntoCanvas { canvas ->
-                    val borderPaint = Paint().apply {
-                        color = borderClr
-                        style = PaintingStyle.Stroke
-                        strokeWidth = borderWidthPx
-                    }
-                    canvas.drawPath(path, borderPaint)
-                }
+                drawPath(
+                    path = path,
+                    color = borderClr,
+                    style = androidx.compose.ui.graphics.drawscope.Stroke(width = borderWidthPx)
+                )
             }
         }
 

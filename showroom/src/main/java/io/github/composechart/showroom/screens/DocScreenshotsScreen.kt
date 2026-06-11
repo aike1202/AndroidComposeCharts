@@ -35,6 +35,7 @@ import io.github.composechart.charts.radar.*
 import io.github.composechart.charts.scatter.*
 import io.github.composechart.core.style.ChartStyle
 import io.github.composechart.showroom.ScreenshotHelper
+import io.github.composechart.showroom.ScreenshotTask
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -45,9 +46,9 @@ import kotlinx.coroutines.withContext
  * 截图控制器，用于从外部触发 Composable 截图
  */
 class ScreenshotController {
-    var onCapture: ((String) -> Unit)? = null
-    fun capture(fileName: String) {
-        onCapture?.invoke(fileName)
+    var onCapture: ((String, (Boolean) -> Unit) -> Unit)? = null
+    fun capture(fileName: String, onComplete: (Boolean) -> Unit = {}) {
+        onCapture?.invoke(fileName, onComplete)
     }
 }
 
@@ -63,28 +64,38 @@ fun ChartScreenshotContainer(
 ) {
     val picture = remember { android.graphics.Picture() }
     val context = LocalContext.current
+    var triggerDraw by remember { mutableStateOf(0) }
     
     DisposableEffect(controller, fileName) {
-        controller.onCapture = { name ->
-            val width = picture.width
-            val height = picture.height
-            if (width > 0 && height > 0) {
-                val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-                val canvas = android.graphics.Canvas(bitmap)
-                picture.draw(canvas)
+        controller.onCapture = { name, callback ->
+            triggerDraw++ // 触发一次强制重绘，以获取子组件的最新一帧
+            
+            CoroutineScope(Dispatchers.Main).launch {
+                // 等待两帧时间让 Compose 完成图表的重绘和 Picture 的录制
+                delay(100)
                 
-                CoroutineScope(Dispatchers.IO).launch {
-                    val (success, path) = ScreenshotHelper.saveBitmap(context, bitmap, name)
-                    withContext(Dispatchers.Main) {
-                        if (success) {
-                            Toast.makeText(context, "图表已截图并保存: $path", Toast.LENGTH_SHORT).show()
-                        } else {
-                            Toast.makeText(context, "保存失败: $path", Toast.LENGTH_SHORT).show()
+                val width = picture.width
+                val height = picture.height
+                if (width > 0 && height > 0) {
+                    val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+                    val canvas = android.graphics.Canvas(bitmap)
+                    picture.draw(canvas)
+                    
+                    withContext(Dispatchers.IO) {
+                        val (success, path) = ScreenshotHelper.saveBitmap(context, bitmap, name)
+                        withContext(Dispatchers.Main) {
+                            if (success) {
+                                Toast.makeText(context, "图表已截图并保存: $path", Toast.LENGTH_SHORT).show()
+                            } else {
+                                Toast.makeText(context, "保存失败: $path", Toast.LENGTH_SHORT).show()
+                            }
+                            callback(success)
                         }
                     }
+                } else {
+                    Toast.makeText(context, "图表尚未准备好截图", Toast.LENGTH_SHORT).show()
+                    callback(false)
                 }
-            } else {
-                Toast.makeText(context, "图表尚未准备好截图", Toast.LENGTH_SHORT).show()
             }
         }
         onDispose {
@@ -100,9 +111,24 @@ fun ChartScreenshotContainer(
                 val width = size.width.toInt()
                 val height = size.height.toInt()
                 onDrawWithContent {
+                    // 必须在 onDrawWithContent 内部读取该状态！
+                    // 这样当 triggerDraw 改变时，Compose 才会直接让此绘制层失效并安排重新执行真实的 Draw 阶段！
+                    val currentTrigger = triggerDraw
+                    
                     val pictureCanvas = androidx.compose.ui.graphics.Canvas(
                         picture.beginRecording(width, height)
                     )
+                    // 1. 绘制不透明纯色底色以防止透明背景
+                    val isDark = fileName.contains("_dark")
+                    val bgColor = if (isDark) androidx.compose.ui.graphics.Color(0xFF1B1B1D) else androidx.compose.ui.graphics.Color.White
+                    pictureCanvas.drawRect(
+                        rect = androidx.compose.ui.geometry.Rect(0f, 0f, width.toFloat(), height.toFloat()),
+                        paint = androidx.compose.ui.graphics.Paint().apply {
+                            color = bgColor
+                        }
+                    )
+
+                    // 2. 绘制图表内容
                     drawIntoCanvas { canvas ->
                         val drawContext = drawContext
                         val originalCanvas = drawContext.canvas
@@ -186,7 +212,11 @@ fun ParamRow(label: String, value: String) {
 }
 
 @Composable
-fun DocScreenshotsScreen(style: ChartStyle) {
+fun DocScreenshotsScreen(
+    style: ChartStyle,
+    currentTask: ScreenshotTask = ScreenshotTask.NONE,
+    onDocsFinished: () -> Unit = {}
+) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     var isCapturingAll by remember { mutableStateOf(false) }
@@ -207,6 +237,43 @@ fun DocScreenshotsScreen(style: ChartStyle) {
     val cPolar = remember { ScreenshotController() }
 
     val themeSuffix = if (style.backgroundColor == Color(0xFF1B1B1D)) "_dark" else "_light"
+
+    // 自动任务驱动
+    LaunchedEffect(currentTask) {
+        if ((currentTask == ScreenshotTask.DOCS_LIGHT && themeSuffix == "_light") ||
+            (currentTask == ScreenshotTask.DOCS_DARK && themeSuffix == "_dark")) {
+            
+            delay(2000) // 等待页面加载完毕
+            cLine.capture("doc_line$themeSuffix")
+            delay(800)
+            cBar.capture("doc_bar$themeSuffix")
+            delay(800)
+            cPie.capture("doc_pie$themeSuffix")
+            delay(800)
+            cBar3D.capture("doc_bar3d$themeSuffix")
+            delay(800)
+            cCalendar.capture("doc_calendar$themeSuffix")
+            delay(800)
+            cGauge.capture("doc_gauge$themeSuffix")
+            delay(800)
+            cRadar.capture("doc_radar$themeSuffix")
+            delay(800)
+            cKLine.capture("doc_kline$themeSuffix")
+            delay(800)
+            cScatter.capture("doc_scatter$themeSuffix")
+            delay(800)
+            cBoxplot.capture("doc_boxplot$themeSuffix")
+            delay(800)
+            cFunnel.capture("doc_funnel$themeSuffix")
+            delay(800)
+            cMixed.capture("doc_mixed$themeSuffix")
+            delay(800)
+            cPolar.capture("doc_polar$themeSuffix")
+            delay(800)
+            
+            onDocsFinished()
+        }
+    }
 
     Column(
         modifier = Modifier

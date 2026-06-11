@@ -1,17 +1,22 @@
 package com.aike.composechart
 
 import android.graphics.Bitmap
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.onChildAt
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -60,74 +65,85 @@ class ChartScreenshotTest {
     }
 
     private fun captureShowroomChart(chartType: ChartType, style: ChartStyle, filename: String) {
+        composeTestRule.mainClock.autoAdvance = false
         composeTestRule.setContent {
-            when (chartType) {
-                ChartType.LINE_TEMP -> DemoTemperature(style = style)
-                ChartType.LINE_MULTI -> DemoMultiSeries(style = style)
-                ChartType.LINE_BIG -> DemoBigData(style = style)
-                ChartType.LINE_STACKED -> DemoStackedLine(style = style)
-                ChartType.LINE_STACKED_AREA -> DemoStackedArea(style = style)
-                ChartType.LINE_GRADIENT_STACKED_AREA -> DemoGradientStackedArea(style = style)
-                ChartType.LINE_CONFIDENCE_BAND -> DemoConfidenceBand(style = style)
-                ChartType.BAR_COMPARE -> DemoBarComparison(style = style)
-                ChartType.BAR_STACK -> DemoBarStack(style = style)
-                ChartType.BAR_HORIZONTAL -> DemoHorizontalBar(style = style)
-                ChartType.PIE_BASIC -> DemoBasicPie(style = style)
-                ChartType.PIE_DOUGHNUT -> DemoDoughnut(style = style)
-                ChartType.PIE_ROSE -> DemoNightingaleRose(style = style)
-                ChartType.PIE_ROSE_BASIC -> DemoBasicNightingaleRose(style = style)
-                ChartType.PIE_BASIC_ACCESS -> DemoBasicAccessPie(style = style)
-                ChartType.PIE_ROUNDED_DOUGHNUT -> DemoRoundedDoughnut(style = style)
-                ChartType.PIE_DOUGHNUT_BASIC -> DemoDoughnutBasic(style = style)
-                ChartType.PIE_HALF_DOUGHNUT -> DemoHalfDoughnut(style = style)
-                ChartType.PIE_PAD_ANGLE -> DemoPiePadAngle(style = style)
-                ChartType.RADAR -> DemoRadar(style = style)
-                ChartType.KLINE -> DemoKLine(style = style)
-                ChartType.SCATTER -> DemoScatter(style = style)
-                ChartType.GAUGE -> DemoGauge(style = style)
-                ChartType.GAUGE_GRADE -> DemoGradeGauge(style = style)
-                ChartType.GAUGE_TEMPERATURE -> DemoTemperatureGauge(style = style)
-                ChartType.CALENDAR_BASIC -> DemoSimpleCalendar(style = style)
-                ChartType.CALENDAR_VERTICAL -> DemoVerticalCalendar(style = style)
-                ChartType.CALENDAR_LUNAR -> DemoLunarCalendar(style = style)
-                ChartType.BAR3D_PUNCH_CARD -> DemoBar3DPunchCard(style = style)
-                ChartType.FUNNEL -> DemoFunnel(style = style)
-                ChartType.BOXPLOT -> DemoBoxplot(style = style)
-                ChartType.MIXED_LINE_BAR -> DemoMixedChart(style = style)
-                ChartType.LINE_MULTIPLE_X_AXES -> DemoMultipleXAxes(style = style)
-                ChartType.LINE_STEP -> DemoStepLine(style = style)
-                ChartType.LINE_RACE -> DemoLineRace(style = style)
-                ChartType.LINE_FUNCTION_PLOT -> DemoFunctionPlot(style = style)
-                ChartType.LINE_BUMP -> DemoBumpChart(style = style)
-                ChartType.LINE_MARK_AREA -> DemoMarkArea(style = style)
-                ChartType.BAR_NEGATIVE_VALUE -> DemoBarNegativeValue(style = style)
-                ChartType.BAR_WATERFALL -> DemoBarWaterfall(style = style)
-                ChartType.BAR_GRADIENT_ZOOM -> DemoBarGradientZoom(style = style)
-                ChartType.POLAR_BAR_RADIAL -> DemoPolarRadialBar(style = style)
-                ChartType.POLAR_BAR_TANGENTIAL -> DemoPolarTangentialBar(style = style)
-                ChartType.DOC_SCREENSHOTS -> DocScreenshotsScreen(style = style)
+            CompositionLocalProvider(LocalShowControlPanel provides false) {
+                Box(
+                    modifier = Modifier
+                        .size(width = 360.dp, height = 360.dp)
+                        .testTag("chart_screenshot_container")
+                ) {
+                    when (chartType) {
+                        ChartType.LINE_TEMP -> DemoTemperature(style = style)
+                        ChartType.LINE_MULTI -> DemoMultiSeries(style = style)
+                        ChartType.LINE_BIG -> DemoBigData(style = style)
+                        ChartType.LINE_STACKED -> DemoStackedLine(style = style)
+                        ChartType.LINE_STACKED_AREA -> DemoStackedArea(style = style)
+                        ChartType.LINE_GRADIENT_STACKED_AREA -> DemoGradientStackedArea(style = style)
+                        ChartType.LINE_CONFIDENCE_BAND -> DemoConfidenceBand(style = style)
+                        ChartType.BAR_COMPARE -> DemoBarComparison(style = style)
+                        ChartType.BAR_STACK -> DemoBarStack(style = style)
+                        ChartType.BAR_HORIZONTAL -> DemoHorizontalBar(style = style)
+                        ChartType.PIE_BASIC -> DemoBasicPie(style = style)
+                        ChartType.PIE_DOUGHNUT -> DemoDoughnut(style = style)
+                        ChartType.PIE_ROSE -> DemoNightingaleRose(style = style)
+                        ChartType.PIE_ROSE_BASIC -> DemoBasicNightingaleRose(style = style)
+                        ChartType.PIE_BASIC_ACCESS -> DemoBasicAccessPie(style = style)
+                        ChartType.PIE_ROUNDED_DOUGHNUT -> DemoRoundedDoughnut(style = style)
+                        ChartType.PIE_DOUGHNUT_BASIC -> DemoDoughnutBasic(style = style)
+                        ChartType.PIE_HALF_DOUGHNUT -> DemoHalfDoughnut(style = style)
+                        ChartType.PIE_PAD_ANGLE -> DemoPiePadAngle(style = style)
+                        ChartType.RADAR -> DemoRadar(style = style)
+                        ChartType.KLINE -> DemoKLine(style = style)
+                        ChartType.SCATTER -> DemoScatter(style = style)
+                        ChartType.GAUGE -> DemoGauge(style = style)
+                        ChartType.GAUGE_GRADE -> DemoGradeGauge(style = style)
+                        ChartType.GAUGE_TEMPERATURE -> DemoTemperatureGauge(style = style)
+                        ChartType.CALENDAR_BASIC -> DemoSimpleCalendar(style = style)
+                        ChartType.CALENDAR_VERTICAL -> DemoVerticalCalendar(style = style)
+                        ChartType.CALENDAR_LUNAR -> DemoLunarCalendar(style = style)
+                        ChartType.BAR3D_PUNCH_CARD -> DemoBar3DPunchCard(style = style)
+                        ChartType.FUNNEL -> DemoFunnel(style = style)
+                        ChartType.BOXPLOT -> DemoBoxplot(style = style)
+                        ChartType.MIXED_LINE_BAR -> DemoMixedChart(style = style)
+                        ChartType.LINE_MULTIPLE_X_AXES -> DemoMultipleXAxes(style = style)
+                        ChartType.LINE_STEP -> DemoStepLine(style = style)
+                        ChartType.LINE_RACE -> DemoLineRace(style = style)
+                        ChartType.LINE_FUNCTION_PLOT -> DemoFunctionPlot(style = style)
+                        ChartType.LINE_BUMP -> DemoBumpChart(style = style)
+                        ChartType.LINE_MARK_AREA -> DemoMarkArea(style = style)
+                        ChartType.BAR_NEGATIVE_VALUE -> DemoBarNegativeValue(style = style)
+                        ChartType.BAR_WATERFALL -> DemoBarWaterfall(style = style)
+                        ChartType.BAR_GRADIENT_ZOOM -> DemoBarGradientZoom(style = style)
+                        ChartType.POLAR_BAR_RADIAL -> DemoPolarRadialBar(style = style)
+                        ChartType.POLAR_BAR_TANGENTIAL -> DemoPolarTangentialBar(style = style)
+                        ChartType.DOC_SCREENSHOTS -> DocScreenshotsScreen(style = style)
+                    }
+                }
             }
         }
-        composeTestRule.waitForIdle()
-        Thread.sleep(1200) // 等待测量与动画渲染稳定
+        composeTestRule.mainClock.advanceTimeBy(1500)
         
-        // 抓取第一个子节点（即放置图表组件的 Box 容器，高度为固定 350-360dp，宽度占满），过滤掉控制面板。
-        val bitmap = try {
-            composeTestRule.onRoot().onChildAt(0).captureToImage().asAndroidBitmap()
-        } catch (e: Exception) {
-            composeTestRule.onRoot().captureToImage().asAndroidBitmap()
-        }
+        val bitmap = composeTestRule.onNodeWithTag("chart_screenshot_container").captureToImage().asAndroidBitmap()
         saveBitmapToStorage(bitmap, filename)
+        composeTestRule.mainClock.autoAdvance = true
     }
 
     private fun captureDocChart(style: ChartStyle, filename: String, chartContent: @Composable (ChartStyle) -> Unit) {
+        composeTestRule.mainClock.autoAdvance = false
         composeTestRule.setContent {
-            chartContent(style)
+            Box(
+                modifier = Modifier
+                    .size(width = 360.dp, height = 360.dp)
+                    .testTag("chart_screenshot_container")
+            ) {
+                chartContent(style)
+            }
         }
-        composeTestRule.waitForIdle()
-        Thread.sleep(1200)
-        val bitmap = composeTestRule.onRoot().captureToImage().asAndroidBitmap()
+        composeTestRule.mainClock.advanceTimeBy(1500)
+        val bitmap = composeTestRule.onNodeWithTag("chart_screenshot_container").captureToImage().asAndroidBitmap()
         saveBitmapToStorage(bitmap, filename)
+        composeTestRule.mainClock.autoAdvance = true
     }
 
     @Test

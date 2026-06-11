@@ -35,6 +35,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -51,6 +52,14 @@ import io.github.composechart.core.style.ChartStyle
 import io.github.composechart.showroom.screens.*
 import io.github.composechart.showroom.ui.theme.ComposeChartTheme
 
+enum class ScreenshotTask {
+    NONE,
+    SHOWCASE_LIGHT,
+    SHOWCASE_DARK,
+    DOCS_LIGHT,
+    DOCS_DARK
+}
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,7 +71,7 @@ class MainActivity : ComponentActivity() {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     ShowroomApp(
                         isDark = isDarkTheme,
-                        onThemeToggle = { isDarkTheme = !isDarkTheme },
+                        onThemeChange = { isDarkTheme = it },
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
@@ -141,7 +150,7 @@ enum class ChartType(
 @Composable
 fun ShowroomApp(
     isDark: Boolean,
-    onThemeToggle: () -> Unit,
+    onThemeChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var currentScreen by remember { mutableStateOf<Screen>(Screen.Home) }
@@ -149,61 +158,94 @@ fun ShowroomApp(
     val backgroundColor = if (isDark) Color(0xFF131314) else Color(0xFFF8F9FA)
 
     // 自动截图控制状态
-    var autoScreenshotIndex by remember { mutableStateOf<Int?>(null) }
-    var isAutoRunning by remember { mutableStateOf(false) }
+    var currentTask by remember { mutableStateOf(ScreenshotTask.NONE) }
+    var taskIndex by remember { mutableStateOf(0) }
+    var runSingleTaskOnly by remember { mutableStateOf(false) }
+    var showScreenshotPanel by remember { mutableStateOf(false) }
+
+    val isAutoRunning = currentTask != ScreenshotTask.NONE
     val view = androidx.compose.ui.platform.LocalView.current
     val context = androidx.compose.ui.platform.LocalContext.current
+    
+    val detailController = remember { ScreenshotController() }
+    val showControlPanel = !isAutoRunning
 
     // 系统返回键拦截
     if (currentScreen is Screen.Detail) {
         BackHandler {
             if (isAutoRunning) {
-                isAutoRunning = false
-                autoScreenshotIndex = null
+                currentTask = ScreenshotTask.NONE
+                taskIndex = 0
             }
             currentScreen = Screen.Home
         }
     }
 
     // 自动轮播截图驱动器
-    androidx.compose.runtime.LaunchedEffect(autoScreenshotIndex, isAutoRunning, isDark) {
-        val index = autoScreenshotIndex
-        if (isAutoRunning && index != null) {
-            val chartTypes = ChartType.values()
-            if (index < chartTypes.size) {
-                val chartType = chartTypes[index]
-                // 1. 切换到该详情页
-                currentScreen = Screen.Detail(chartType)
-                // 2. 延迟 1500ms，等待图表动画与渲染完全加载完毕
-                kotlinx.coroutines.delay(1500)
-                // 3. 执行截图
-                val themeSuffix = if (isDark) "_dark" else "_light"
-                val fileName = "${chartType.name.lowercase()}$themeSuffix"
-                ScreenshotHelper.captureAndSave(view, context, fileName) { success, _ ->
-                    // 无论成功与否，继续推进到下一张
-                    val nextIndex = index + 1
-                    if (nextIndex < chartTypes.size) {
-                        autoScreenshotIndex = nextIndex
-                    } else {
-                        // 结束自动轮播
-                        autoScreenshotIndex = null
-                        isAutoRunning = false
+    androidx.compose.runtime.LaunchedEffect(currentTask, taskIndex, isDark) {
+        if (currentTask == ScreenshotTask.NONE) return@LaunchedEffect
+        
+        val showcaseList = ChartType.values().filter { it != ChartType.DOC_SCREENSHOTS }
+        val isTaskDark = (currentTask == ScreenshotTask.SHOWCASE_DARK || currentTask == ScreenshotTask.DOCS_DARK)
+        
+        // 保证主题状态与当前任务阶段绝对对齐
+        if (isTaskDark != isDark) {
+            onThemeChange(isTaskDark)
+            kotlinx.coroutines.delay(1000) // 延迟等待系统重新渲染
+            return@LaunchedEffect
+        }
+        
+        when (currentTask) {
+            ScreenshotTask.SHOWCASE_LIGHT, ScreenshotTask.SHOWCASE_DARK -> {
+                if (taskIndex < showcaseList.size) {
+                    val chartType = showcaseList[taskIndex]
+                    currentScreen = Screen.Detail(chartType)
+                    
+                    // 等待 1500ms 让动画加载完毕
+                    kotlinx.coroutines.delay(1500)
+                    
+                    val themeSuffix = if (isDark) "_dark" else "_light"
+                    val fileName = "${chartType.name.lowercase()}$themeSuffix"
+                    
+                    // 触发截图（用 Picture 绘图录制，不需要等待存盘完成回调）
+                    detailController.capture(fileName)
+                    
+                    // 额外延迟 500ms 给 IO 线程缓冲，然后继续
+                    kotlinx.coroutines.delay(500)
+                    taskIndex++
+                } else {
+                    // 本阶段大厅截图已完成
+                    if (runSingleTaskOnly) {
+                        currentTask = ScreenshotTask.NONE
+                        taskIndex = 0
                         currentScreen = Screen.Home
-                        android.widget.Toast.makeText(context, "🎉 所有图表截图已自动生成完成！", android.widget.Toast.LENGTH_LONG).show()
+                        android.widget.Toast.makeText(context, "🎉 大厅图表截图自动生成完成！", android.widget.Toast.LENGTH_LONG).show()
+                    } else {
+                        if (currentTask == ScreenshotTask.SHOWCASE_LIGHT) {
+                            currentTask = ScreenshotTask.DOCS_LIGHT
+                            taskIndex = 0
+                        } else {
+                            currentTask = ScreenshotTask.NONE
+                            taskIndex = 0
+                        }
                     }
                 }
-            } else {
-                autoScreenshotIndex = null
-                isAutoRunning = false
             }
+            ScreenshotTask.DOCS_LIGHT, ScreenshotTask.DOCS_DARK -> {
+                // 切换到文档截图页面，该页面内有独立的 LaunchedEffect 会执行这 13 个图表的自动截图
+                currentScreen = Screen.Detail(ChartType.DOC_SCREENSHOTS)
+            }
+            else -> {}
         }
     }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .background(backgroundColor)
-    ) {
+    CompositionLocalProvider(LocalShowControlPanel provides showControlPanel) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = modifier
+                    .fillMaxSize()
+                    .background(backgroundColor)
+            ) {
         // TopBar 顶栏
         Row(
             modifier = Modifier
@@ -214,8 +256,8 @@ fun ShowroomApp(
             if (currentScreen is Screen.Detail) {
                 IconButton(onClick = {
                     if (isAutoRunning) {
-                        isAutoRunning = false
-                        autoScreenshotIndex = null
+                        currentTask = ScreenshotTask.NONE
+                        taskIndex = 0
                     }
                     currentScreen = Screen.Home
                 }) {
@@ -245,22 +287,19 @@ fun ShowroomApp(
             // 按钮操作区
             if (currentScreen is Screen.Home) {
                 // 主页：提供自动截图按钮
-                val totalCount = ChartType.values().size
-                val btnText = if (isAutoRunning && autoScreenshotIndex != null) {
-                    "停止 (${autoScreenshotIndex!! + 1}/$totalCount)"
+                val btnText = if (isAutoRunning) {
+                    "停止中"
                 } else {
-                    "自动截图"
+                    "截图中心"
                 }
 
                 Button(
                     onClick = {
                         if (isAutoRunning) {
-                            isAutoRunning = false
-                            autoScreenshotIndex = null
-                            currentScreen = Screen.Home
+                            currentTask = ScreenshotTask.NONE
+                            taskIndex = 0
                         } else {
-                            autoScreenshotIndex = 0
-                            isAutoRunning = true
+                            showScreenshotPanel = true
                         }
                     },
                     colors = ButtonDefaults.buttonColors(
@@ -278,7 +317,7 @@ fun ShowroomApp(
                     onClick = {
                         val themeSuffix = if (isDark) "_dark" else "_light"
                         val fileName = "${s.chartType.name.lowercase()}$themeSuffix"
-                        ScreenshotHelper.captureAndSave(view, context, fileName)
+                        detailController.capture(fileName)
                     },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF67C23A)
@@ -291,7 +330,7 @@ fun ShowroomApp(
             }
 
             Button(
-                onClick = onThemeToggle,
+                onClick = { onThemeChange(!isDark) },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = if (isDark) Color(0xFF5470C6) else Color(0xFF333333)
                 ),
@@ -330,6 +369,10 @@ fun ShowroomApp(
 
             // 2. 详情页作为顶层叠加渲染，防止点击穿透到底层列表项
             if (currentScreen is Screen.Detail) {
+                val s = currentScreen as Screen.Detail
+                val themeSuffix = if (isDark) "_dark" else "_light"
+                val fileName = "${s.chartType.name.lowercase()}$themeSuffix"
+
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -338,11 +381,23 @@ fun ShowroomApp(
                             interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
                             indication = null,
                             onClick = {} // 拦截点击
-                        )
+                        ),
+                    contentAlignment = Alignment.Center
                 ) {
-                    val s = currentScreen as Screen.Detail
-                    when (s.chartType) {
-                        ChartType.LINE_TEMP -> DemoTemperature(style = chartStyle)
+                    ChartScreenshotContainer(
+                        fileName = fileName,
+                        controller = detailController,
+                        modifier = Modifier
+                            .run {
+                                if (isAutoRunning) {
+                                    this.size(width = 360.dp, height = 360.dp)
+                                } else {
+                                    this.fillMaxSize()
+                                }
+                            }
+                    ) {
+                        when (s.chartType) {
+                            ChartType.LINE_TEMP -> DemoTemperature(style = chartStyle)
                         ChartType.LINE_MULTI -> DemoMultiSeries(style = chartStyle)
                         ChartType.LINE_BIG -> DemoBigData(style = chartStyle)
                         ChartType.LINE_STACKED -> DemoStackedLine(style = chartStyle)
@@ -386,12 +441,175 @@ fun ShowroomApp(
                         ChartType.BAR_GRADIENT_ZOOM -> DemoBarGradientZoom(style = chartStyle)
                         ChartType.POLAR_BAR_RADIAL -> DemoPolarRadialBar(style = chartStyle)
                         ChartType.POLAR_BAR_TANGENTIAL -> DemoPolarTangentialBar(style = chartStyle)
-                        ChartType.DOC_SCREENSHOTS -> DocScreenshotsScreen(style = chartStyle)
+                        ChartType.DOC_SCREENSHOTS -> DocScreenshotsScreen(
+                            style = chartStyle,
+                            currentTask = currentTask,
+                            onDocsFinished = {
+                                if (currentTask == ScreenshotTask.DOCS_LIGHT) {
+                                    currentTask = ScreenshotTask.NONE
+                                    taskIndex = 0
+                                    currentScreen = Screen.Home
+                                    android.widget.Toast.makeText(context, "🎉 全量 56 张亮色图表截图已全自动生成完成！", android.widget.Toast.LENGTH_LONG).show()
+                                }
+                            }
+                        )
+                    }
+                } // 闭合 ChartScreenshotContainer
+            }
+        }
+    }
+}
+
+    // 自动截图进度提示条 Overlay
+    if (isAutoRunning) {
+        val showcaseList = ChartType.values().filter { it != ChartType.DOC_SCREENSHOTS }
+        val totalCount = if (currentTask == ScreenshotTask.SHOWCASE_LIGHT || currentTask == ScreenshotTask.SHOWCASE_DARK) {
+            showcaseList.size
+        } else {
+            13
+        }
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.3f))
+                .clickable(enabled = true, onClick = {}), // 拦截全屏点击防止误触
+            contentAlignment = Alignment.TopCenter
+        ) {
+            Card(
+                modifier = Modifier
+                    .padding(top = 80.dp)
+                    .padding(horizontal = 24.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFFE6A23C)),
+                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "📸 正在自动截图中: ${currentTask.name}\n进度: ${taskIndex + 1} / $totalCount",
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        lineHeight = 18.sp
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Button(
+                        onClick = {
+                            currentTask = ScreenshotTask.NONE
+                            taskIndex = 0
+                            currentScreen = Screen.Home
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEE6666)),
+                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp),
+                        shape = RoundedCornerShape(6.dp)
+                    ) {
+                        Text("停止", fontSize = 12.sp, color = Color.White)
                     }
                 }
             }
         }
     }
+
+    // 截图中心底部面板 Overlay
+    if (showScreenshotPanel && currentScreen is Screen.Home) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.5f))
+                .clickable { showScreenshotPanel = false },
+            contentAlignment = Alignment.BottomCenter
+        ) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+                    .clickable(enabled = false, onClick = {}),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = if (isDark) Color(0xFF1E1E20) else Color.White
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(width = 40.dp, height = 4.dp)
+                            .clip(RoundedCornerShape(2.dp))
+                            .background(if (isDark) Color.DarkGray else Color.LightGray)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    Text(
+                        text = "📸 自动截图控制中心",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (isDark) Color.White else Color.Black
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "生成的截图以 360dp*360dp 纯净画幅保存至手机相册 Pictures/ComposeChart/",
+                        fontSize = 11.sp,
+                        color = if (isDark) Color(0xFF999999) else Color(0xFF666666),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(20.dp))
+                    
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Button(
+                            onClick = {
+                                showScreenshotPanel = false
+                                runSingleTaskOnly = true
+                                taskIndex = 0
+                                currentTask = ScreenshotTask.SHOWCASE_LIGHT
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFAC858)),
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(10.dp)
+                        ) {
+                            Text("仅生成大厅亮色截图 (43张)", fontSize = 12.sp, color = Color.Black)
+                        }
+                    }
+                    
+                    Spacer(modifier = Modifier.height(10.dp))
+                    
+                    Button(
+                        onClick = {
+                            showScreenshotPanel = false
+                            runSingleTaskOnly = false
+                            taskIndex = 0
+                            currentTask = ScreenshotTask.SHOWCASE_LIGHT
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF67C23A)),
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(10.dp)
+                    ) {
+                        Text("一键全自动生成 56 张亮色截图", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                    
+                    Text(
+                        text = "温馨提示：生成中请保持屏幕常亮。\n生成后，在电脑端执行 pull_doc_images.ps1 拉取到工程目录。",
+                        fontSize = 11.sp,
+                        color = Color(0xFFE6A23C),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        lineHeight = 16.sp
+                    )
+                }
+            }
+        }
+    }
+}
+}
 }
 
 /**

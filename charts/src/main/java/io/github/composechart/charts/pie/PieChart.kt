@@ -167,27 +167,18 @@ fun PieChart(
                 )
 
                 val mapper = CoordinateMapper(gridRect = gridRect, viewportState = io.github.composechart.core.state.ViewportState())
-                val renderer = remember(style, animationProgress.value) {
+                val renderer = remember(style) {
                     PieChartRenderer(
                         mapper = mapper,
                         style = style,
                         textMeasurer = textMeasurer,
-                        density = density,
-                        animationProgress = animationProgress.value
+                        density = density
                     )
                 }
 
                 // 物理尺寸转换与选中偏移参数
                 val selectedOffsetMaxPx = with(density) { style.pieOptions.selectedOffset.toPx() }
                 val currentOffsetPx = selectedOffsetAnim.value * selectedOffsetMaxPx
-
-                // 计算各扇区角度及半径
-                renderer.calculateSlices(
-                    slices = data.slices,
-                    hiddenList = hiddenSlices,
-                    selectedIndex = selectedIndex,
-                    selectedOffsetPx = currentOffsetPx
-                )
 
                 // 圆心物理坐标，用于点击交互碰撞识别
                 val centerX = gridRect.left + gridRect.width / 2f
@@ -237,6 +228,32 @@ fun PieChart(
                             }
                         }
                 ) {
+                    val animProgress = animationProgress.value
+
+                    val widthPx = size.width
+                    val heightPx = size.height
+                    val leftMarginPx = style.gridOptions.left.toPx()
+                    val rightMarginPx = style.gridOptions.right.toPx()
+                    val topMarginPx = style.gridOptions.top.toPx()
+                    val bottomMarginPx = style.gridOptions.bottom.toPx()
+
+                    val currentGridRect = Rect(
+                        left = leftMarginPx,
+                        top = topMarginPx,
+                        right = widthPx - rightMarginPx,
+                        bottom = heightPx - bottomMarginPx
+                    )
+
+                    // 在 Canvas 重绘时以最准确的 Canvas 物理尺寸进行计算以实现完美的状态响应动画
+                    renderer.calculateSlices(
+                        slices = data.slices,
+                        hiddenList = hiddenSlices,
+                        selectedIndex = selectedIndex,
+                        selectedOffsetPx = currentOffsetPx,
+                        animProgress = animProgress,
+                        gridRect = currentGridRect
+                    )
+
                     // 绘制扇区 Path
                     renderer.drawSlices(this)
 

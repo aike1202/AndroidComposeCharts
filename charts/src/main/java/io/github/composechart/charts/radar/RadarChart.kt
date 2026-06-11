@@ -135,18 +135,18 @@ fun RadarChart(
             )
 
             val mapper = CoordinateMapper(gridRect = gridRect, viewportState = ViewportState())
-            val renderer = remember(mapper, style, animationProgress.value) {
+            val renderer = remember(mapper, style) {
                 RadarChartRenderer(
                     mapper = mapper,
                     style = style,
                     textMeasurer = textMeasurer,
-                    density = density,
-                    animationProgress = animationProgress.value
+                    density = density
                 )
             }
 
             Canvas(modifier = Modifier.fillMaxSize()) {
-                renderer.draw(this, data.indicators, visibleSeries)
+                val animProgress = animationProgress.value
+                renderer.draw(this, data.indicators, visibleSeries, animProgress)
             }
         }
 
