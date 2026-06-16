@@ -10,7 +10,7 @@ To integrate the library, add this coordinate directly to your Kotlin DSL `build
 
 ```kotlin
 dependencies {
-    implementation("com.github.aike1202.AndroidComposeCharts:charts:1.0.3")
+    implementation("com.github.aike1202.AndroidComposeCharts:charts:1.0.4")
 }
 ```
 
@@ -406,7 +406,9 @@ data class PieOptions(
     val roundCap: Boolean = false,    // Ends of doughnut arcs rounded as capsule caps
     val borderWidth: Dp = 0.dp,
     val borderColor: Color? = null,
-    val labelAlign: PieLabelAlign = PieLabelAlign.None // Alignment mode: None (radial), LeftRight (vertical columns), TopBottom (horizontal rows)
+    val labelAlign: PieLabelAlign = PieLabelAlign.None, // Alignment mode: None (radial), LeftRight (vertical columns), TopBottom (horizontal rows)
+    val minAngle: Float = 0f, // Minimum sweep angle for small sectors to avoid overlapping pointers
+    val minShowLabelPercent: Float = 0f // Minimum value percentage threshold (0f-100f) to show labels
 )
 
 enum class RoseType {
