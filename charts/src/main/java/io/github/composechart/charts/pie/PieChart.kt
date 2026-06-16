@@ -154,10 +154,19 @@ fun PieChart(
                 val widthPx = constraints.maxWidth.toFloat()
                 val heightPx = constraints.maxHeight.toFloat()
 
-                val leftMarginPx = with(density) { style.gridOptions.left.toPx() }
-                val rightMarginPx = with(density) { style.gridOptions.right.toPx() }
-                val topMarginPx = with(density) { style.gridOptions.top.toPx() }
-                val bottomMarginPx = with(density) { style.gridOptions.bottom.toPx() }
+                // 饼图无 X/Y 轴标签，默认空出 4.dp 微边距以最大化饼图显示面积，除非用户显式配置了自定义边距
+                val leftMarginPx = with(density) {
+                    if (style.gridOptions.left == 40.dp) 4.dp.toPx() else style.gridOptions.left.toPx()
+                }
+                val rightMarginPx = with(density) {
+                    if (style.gridOptions.right == 24.dp) 4.dp.toPx() else style.gridOptions.right.toPx()
+                }
+                val topMarginPx = with(density) {
+                    if (style.gridOptions.top == 48.dp) 4.dp.toPx() else style.gridOptions.top.toPx()
+                }
+                val bottomMarginPx = with(density) {
+                    if (style.gridOptions.bottom == 40.dp) 4.dp.toPx() else style.gridOptions.bottom.toPx()
+                }
 
                 val gridRect = Rect(
                     left = leftMarginPx,
@@ -232,10 +241,10 @@ fun PieChart(
 
                     val widthPx = size.width
                     val heightPx = size.height
-                    val leftMarginPx = style.gridOptions.left.toPx()
-                    val rightMarginPx = style.gridOptions.right.toPx()
-                    val topMarginPx = style.gridOptions.top.toPx()
-                    val bottomMarginPx = style.gridOptions.bottom.toPx()
+                    val leftMarginPx = if (style.gridOptions.left == 40.dp) 4.dp.toPx() else style.gridOptions.left.toPx()
+                    val rightMarginPx = if (style.gridOptions.right == 24.dp) 4.dp.toPx() else style.gridOptions.right.toPx()
+                    val topMarginPx = if (style.gridOptions.top == 48.dp) 4.dp.toPx() else style.gridOptions.top.toPx()
+                    val bottomMarginPx = if (style.gridOptions.bottom == 40.dp) 4.dp.toPx() else style.gridOptions.bottom.toPx()
 
                     val currentGridRect = Rect(
                         left = leftMarginPx,
