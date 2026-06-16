@@ -753,7 +753,7 @@ fun PieTestScreen(
     var containerWidthRatio by remember { mutableFloatStateOf(0.7f) }
     var showLabel by remember { mutableStateOf(true) }
     var minShowLabelPercent by remember { mutableFloatStateOf(0f) } // 默认 0f，即不对过小标签隐去，以便测试 minAngle
-    var minAngle by remember { mutableFloatStateOf(15f) } // 默认 15度 最小角度，以立刻呈现打散避让效果！
+    var minAngle by remember { mutableFloatStateOf(0f) } // 默认 0度，还原真实的比例
 
     Column(
         modifier = modifier
