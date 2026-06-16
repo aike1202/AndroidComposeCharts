@@ -90,7 +90,9 @@ class PieChartRenderer(
                 val labelColor = if (baseColor == Color.Unspecified) {
                     if (style.backgroundColor == Color.Transparent || style.backgroundColor.red > 0.5f) Color.Black else Color.White
                 } else baseColor
-                val labelStyle = style.legendOptions.textStyle.copy(fontSize = 11.sp, color = labelColor)
+                val customFontSize = style.legendOptions.textStyle.fontSize
+                val finalFontSize = if (customFontSize == androidx.compose.ui.unit.TextUnit.Unspecified) 11.sp else customFontSize
+                val labelStyle = style.legendOptions.textStyle.copy(fontSize = finalFontSize, color = labelColor)
 
                 // 找出所有可见标签中最长的那一个文本宽度
                 var maxTextWidth = 0f
@@ -498,7 +500,9 @@ class PieChartRenderer(
         val labelColor = if (baseColor == Color.Unspecified) {
             if (style.backgroundColor == Color.Transparent || style.backgroundColor.red > 0.5f) Color.Black else Color.White
         } else baseColor
-        val labelStyle = style.legendOptions.textStyle.copy(fontSize = 11.sp, color = labelColor)
+        val customFontSize = style.legendOptions.textStyle.fontSize
+        val finalFontSize = if (customFontSize == androidx.compose.ui.unit.TextUnit.Unspecified) 11.sp else customFontSize
+        val labelStyle = style.legendOptions.textStyle.copy(fontSize = finalFontSize, color = labelColor)
 
         // 收集待渲染的文字及坐标
         val labelItems = sliceDrawInfos.mapNotNull { info ->
