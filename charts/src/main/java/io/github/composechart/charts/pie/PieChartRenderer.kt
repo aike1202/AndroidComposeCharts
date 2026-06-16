@@ -580,27 +580,9 @@ class PieChartRenderer(
             )
         }
 
-        // 计算单侧最大可容纳的标签行数，防止过密重叠溢出边界
-        val itemHeight = with(density) { 22.dp.toPx() }
-        val maxAllowed = (grid.height / itemHeight).toInt().coerceAtLeast(2)
-
-        // 分左右侧进行防碰撞推挤调整，并按占比大小保留前 maxAllowed 个
-        val leftGroup = labelItems.filter { it.isLeft }.sortedBy { it.textY }
-        val rightGroup = labelItems.filter { !it.isLeft }.sortedBy { it.textY }
-
-        val finalLeftGroup = if (leftGroup.size <= maxAllowed) {
-            leftGroup
-        } else {
-            val kept = leftGroup.sortedByDescending { it.info.slice.value }.take(maxAllowed)
-            leftGroup.filter { it in kept }
-        }
-
-        val finalRightGroup = if (rightGroup.size <= maxAllowed) {
-            rightGroup
-        } else {
-            val kept = rightGroup.sortedByDescending { it.info.slice.value }.take(maxAllowed)
-            rightGroup.filter { it in kept }
-        }
+        // 分左右侧进行防碰撞推挤调整（已移除 maxAllowed 容量硬限制，完全由上层 minShowLabelPercent 控制）
+        val finalLeftGroup = labelItems.filter { it.isLeft }.sortedBy { it.textY }
+        val finalRightGroup = labelItems.filter { !it.isLeft }.sortedBy { it.textY }
 
         adjustLabelsY(finalLeftGroup, lineLength1, lineLength2)
         adjustLabelsY(finalRightGroup, lineLength1, lineLength2)
