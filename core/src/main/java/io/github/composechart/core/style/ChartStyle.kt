@@ -210,6 +210,7 @@ data class DataZoomOptions(
 data class PieOptions(
     val roseType: RoseType = RoseType.None,
     val innerRadiusRatio: Float = 0f, // 内圆半径占比 (0f-1f), 0f 为实心饼图, >0f 为环形图
+    val outerRadiusRatio: Float = 0.8f, // 外圆半径占比 (0f-1f), 用于调节饼图圈圈的大小
     val padAngle: Float = 0f,         // 扇区空隙角度 (度数, 0f-15f)
     val cornerRadius: Dp = 0.dp,      // 扇区圆角半径
     val selectedOffset: Dp = 10.dp,   // 触控选中扇区外弹平移的物理距离
@@ -219,10 +220,11 @@ data class PieOptions(
     val labelLineColor: Color? = null, // 引导折线颜色，若为空则默认跟随对应扇区颜色
     val labelLineWidth: Dp = 1.dp,
     val startAngle: Float = -90f,      // 饼图/环形图起始扫掠角度 (默认正上方 -90f)
-    val maxAngleSweep: Float = 360f,   // 饼图/环形图最大扫掠角度范围 (360f 为整圆，180f 为半圆等)
+    val maxAngleSweep: Float = 360f,   // 饼图/环形图最大扫掠角度 range
     val roundCap: Boolean = false,     // 是否为环形图的端面开启首尾半圆圆角
     val borderWidth: Dp = 0.dp,        // 边框描边宽度 (配合 cornerRadius 实现网页版防重叠圆角)
-    val borderColor: Color? = null     // 边框描边颜色，为 null 时自动采用图表背景色
+    val borderColor: Color? = null,     // 边框描边颜色，为 null 时自动采用图表背景色
+    val labelAlign: PieLabelAlign = PieLabelAlign.None // 标签排列对齐模式 (None 放射, Edge 左右垂直对齐)
 ) {
     companion object {
         val Default = PieOptions()
@@ -233,6 +235,12 @@ enum class RoseType {
     None,   // 普通饼图
     Radius, // 南丁格尔玫瑰图 (夹角等分，半径代表数值大小)
     Area    // 南丁格尔玫瑰图 (夹角按比例分配，半径代表数值大小)
+}
+
+enum class PieLabelAlign {
+    None,      // 放射模式 (默认，引线斜段角度跟随扇区中心角度)
+    LeftRight, // 左右边缘垂直对齐 (折角点垂直对齐至左右两侧，屏蔽上下方文字)
+    TopBottom  // 上下边缘水平对齐 (折角点水平对齐至上下两侧，屏蔽左右侧文字)
 }
 
 /**

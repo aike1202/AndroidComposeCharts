@@ -71,8 +71,7 @@ class PieChartRenderer(
             grid = gridRect
             centerX = gridRect.left + gridRect.width / 2f
             centerY = gridRect.top + gridRect.height / 2f
-            maxRadius = min(gridRect.width, gridRect.height) / 2f - with(density) { 40.dp.toPx() }
-
+            maxRadius = (min(gridRect.width, gridRect.height) / 2f) * style.pieOptions.outerRadiusRatio
         }
 
         val visibleSlices = slices.filter { it.name !in hiddenList }
@@ -414,12 +413,35 @@ class PieChartRenderer(
             val startX = xc + rOut * cos(info.centerAngleRad).toFloat()
             val startY = yc + rOut * sin(info.centerAngleRad).toFloat()
 
-            // 转折点 (延伸斜线段)
-            val midX = xc + (rOut + lineLength1) * cos(info.centerAngleRad).toFloat()
-            val midY = yc + (rOut + lineLength1) * sin(info.centerAngleRad).toFloat()
-
             // 是否在圆心左侧
             val isLeft = cos(info.centerAngleRad) < 0
+            val isTop = sin(info.centerAngleRad) < 0
+
+            // 根据 labelAlign 决定折角点 X, Y 坐标
+            val midX: Float
+            val midY: Float
+            when (style.pieOptions.labelAlign) {
+                io.github.composechart.core.style.PieLabelAlign.LeftRight -> {
+                    midX = if (isLeft) {
+                        centerX - maxRadius - lineLength1
+                    } else {
+                        centerX + maxRadius + lineLength1
+                    }
+                    midY = yc + (rOut + lineLength1) * sin(info.centerAngleRad).toFloat()
+                }
+                io.github.composechart.core.style.PieLabelAlign.TopBottom -> {
+                    midX = xc + (rOut + lineLength1) * cos(info.centerAngleRad).toFloat()
+                    midY = if (isTop) {
+                        centerY - maxRadius - lineLength1
+                    } else {
+                        centerY + maxRadius + lineLength1
+                    }
+                }
+                else -> {
+                    midX = xc + (rOut + lineLength1) * cos(info.centerAngleRad).toFloat()
+                    midY = yc + (rOut + lineLength1) * sin(info.centerAngleRad).toFloat()
+                }
+            }
 
             // 文本内容测算
             val percent = if (totalValue > 0f) (info.slice.value / totalValue) * 100f else 0f
@@ -546,15 +568,17 @@ class PieChartRenderer(
             
             // 调整折角点 midPt.x，确保它在安全圆盘范围外
             var newMidX = item.midPt.x
-            if (item.isLeft) {
-                val maxMidX = centerX - minDx
-                if (newMidX > maxMidX) {
-                    newMidX = maxMidX
-                }
-            } else {
-                val minMidX = centerX + minDx
-                if (newMidX < minMidX) {
-                    newMidX = minMidX
+            if (style.pieOptions.labelAlign == io.github.composechart.core.style.PieLabelAlign.None) {
+                if (item.isLeft) {
+                    val maxMidX = centerX - minDx
+                    if (newMidX > maxMidX) {
+                        newMidX = maxMidX
+                    }
+                } else {
+                    val minMidX = centerX + minDx
+                    if (newMidX < minMidX) {
+                        newMidX = minMidX
+                    }
                 }
             }
             

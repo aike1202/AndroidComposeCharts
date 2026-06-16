@@ -1,4 +1,4 @@
-﻿# AndroidComposeCharts 使用指南 (GUIDE.md)
+# AndroidComposeCharts 使用指南 (GUIDE.md)
 
 本指南为您提供 `AndroidComposeCharts` 中全部 **13 大类原生图表组件**的快速接入示例与代码模板。所有示例的代码、数据及参数配置均与 App 演示大厅中的 **文档截图生成器** 完全一致，方便您直接复制到项目中使用，并可实时查阅其真实渲染效果图。
 
@@ -159,12 +159,14 @@ fun PieChartDemo(style: ChartStyle) {
         )
     )
 
-    // 定制环形首尾圆角与扇区间隙
+    // 定制环形外径大小、对齐排布、首尾圆角与扇区间隙
     val customStyle = style.copy(
         pieOptions = style.pieOptions.copy(
             innerRadiusRatio = 0.6f,   // 内径比例 (空心环)
+            outerRadiusRatio = 0.85f,  // 外圈半径占比 (可通过调大该值放大中间的圈圈，例如设为 0.9f)
             padAngle = 3f,             // 扇区分割间隙大小
-            cornerRadius = 8.dp        // 首尾半圆胶囊圆角大小
+            cornerRadius = 8.dp,       // 首尾半圆胶囊圆角大小
+            labelAlign = PieLabelAlign.LeftRight // 引导线标签排列对齐模式 (LeftRight 左右对齐, TopBottom 上下对齐, None 经典放射)
         )
     )
 

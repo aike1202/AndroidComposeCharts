@@ -392,6 +392,7 @@ data class PieSlice(val name: String, val value: Float, val color: Color)
 data class PieOptions(
     val roseType: RoseType = RoseType.None,
     val innerRadiusRatio: Float = 0f, // 0f = full Pie, >0f = Doughnut Ring (e.g. 0.6f)
+    val outerRadiusRatio: Float = 0.8f, // Outer radius ratio (0f-1f), used to scale the pie/doughnut circle size
     val padAngle: Float = 0f,         // Angular gap between sectors (in degrees)
     val cornerRadius: Dp = 0.dp,      // Inner/outer corner radius
     val selectedOffset: Dp = 10.dp,   // Pop-out offset when sector is clicked
@@ -404,13 +405,20 @@ data class PieOptions(
     val maxAngleSweep: Float = 360f,
     val roundCap: Boolean = false,    // Ends of doughnut arcs rounded as capsule caps
     val borderWidth: Dp = 0.dp,
-    val borderColor: Color? = null
+    val borderColor: Color? = null,
+    val labelAlign: PieLabelAlign = PieLabelAlign.None // Alignment mode: None (radial), LeftRight (vertical columns), TopBottom (horizontal rows)
 )
 
 enum class RoseType {
     None,   // Standard Pie
     Radius, // Nightingale Rose (even angles, radius maps values)
     Area    // Nightingale Rose (angles map relative value, radius maps values)
+}
+
+enum class PieLabelAlign {
+    None,      // Radial alignment (default, diagonal angles match sector center)
+    LeftRight, // Left & Right vertical columns (aligns pointers to left/right bounds, avoiding top/bottom)
+    TopBottom  // Top & Bottom horizontal rows (aligns pointers to top/bottom bounds, avoiding left/right)
 }
 ```
 
