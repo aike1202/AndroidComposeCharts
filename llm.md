@@ -10,7 +10,7 @@ To integrate the library, add this coordinate directly to your Kotlin DSL `build
 
 ```kotlin
 dependencies {
-    implementation("com.github.aike1202:charts:1.0.0")
+    implementation("com.github.aike1202.AndroidComposeCharts:charts:1.0.0")
 }
 ```
 
