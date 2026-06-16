@@ -95,6 +95,7 @@ class MainActivity : ComponentActivity() {
 sealed class Screen {
     object Home : Screen()
     object PieTest : Screen()
+    object LocalBusinessTest : Screen()
     data class Detail(val chartType: ChartType) : Screen()
 }
 
@@ -181,7 +182,7 @@ fun ShowroomApp(
     val showControlPanel = !isAutoRunning
 
     // 系统返回键拦截
-    if (currentScreen is Screen.Detail || currentScreen is Screen.PieTest) {
+    if (currentScreen is Screen.Detail || currentScreen is Screen.PieTest || currentScreen is Screen.LocalBusinessTest) {
         BackHandler {
             if (isAutoRunning) {
                 currentTask = ScreenshotTask.NONE
@@ -263,7 +264,7 @@ fun ShowroomApp(
                 .padding(horizontal = 8.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            if (currentScreen is Screen.Detail || currentScreen is Screen.PieTest) {
+            if (currentScreen is Screen.Detail || currentScreen is Screen.PieTest || currentScreen is Screen.LocalBusinessTest) {
                 IconButton(onClick = {
                     if (isAutoRunning) {
                         currentTask = ScreenshotTask.NONE
@@ -286,6 +287,7 @@ fun ShowroomApp(
                 text = when (val s = currentScreen) {
                     Screen.Home -> "ComposeChart 演示大厅"
                     Screen.PieTest -> "饼图自适应测试"
+                    Screen.LocalBusinessTest -> "业务数据测试"
                     is Screen.Detail -> s.chartType.title
                 },
                 style = MaterialTheme.typography.titleLarge.copy(
@@ -297,7 +299,7 @@ fun ShowroomApp(
 
             // 按钮操作区
             if (currentScreen is Screen.Home) {
-                // 主页：提供饼图测试与自动截图按钮
+                // 主页：提供饼图测试、业务测试与自动截图按钮
                 Button(
                     onClick = {
                         currentScreen = Screen.PieTest
@@ -308,6 +310,19 @@ fun ShowroomApp(
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
                 ) {
                     Text(text = "饼图测试", fontSize = 12.sp)
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Button(
+                    onClick = {
+                        currentScreen = Screen.LocalBusinessTest
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF10B981)
+                    ),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                ) {
+                    Text(text = "业务测试", fontSize = 12.sp)
                 }
                 Spacer(modifier = Modifier.width(8.dp))
 
@@ -405,6 +420,23 @@ fun ShowroomApp(
                     contentAlignment = Alignment.Center
                 ) {
                     PieTestScreen(
+                        onExitTest = { currentScreen = Screen.Home },
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+            } else if (currentScreen is Screen.LocalBusinessTest) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(backgroundColor)
+                        .clickable(
+                            interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+                            indication = null,
+                            onClick = {}
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    LocalBusinessTestScreen(
                         onExitTest = { currentScreen = Screen.Home },
                         modifier = Modifier.fillMaxSize()
                     )
