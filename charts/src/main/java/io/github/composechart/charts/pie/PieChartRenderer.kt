@@ -451,8 +451,8 @@ class PieChartRenderer(
         val leftGroup = labelItems.filter { it.isLeft }.sortedBy { it.textY }
         val rightGroup = labelItems.filter { !it.isLeft }.sortedBy { it.textY }
 
-        adjustLabelsY(leftGroup)
-        adjustLabelsY(rightGroup)
+        adjustLabelsY(leftGroup, lineLength1, lineLength2)
+        adjustLabelsY(rightGroup, lineLength1, lineLength2)
 
         // 循环绘制所有项目
         labelItems.forEach { item ->
@@ -489,7 +489,7 @@ class PieChartRenderer(
     /**
      * Y 轴排序文字重叠调整算法
      */
-    private fun adjustLabelsY(group: List<LabelLayoutItem>) {
+    private fun adjustLabelsY(group: List<LabelLayoutItem>, lineLength1: Float, lineLength2: Float) {
         if (group.isEmpty()) return
 
         val minGap = with(density) { 16.dp.toPx() } // 文字行间最小间距
@@ -529,11 +529,40 @@ class PieChartRenderer(
             }
         }
 
-        // 4. 重对齐引导线端点
+        // 4. 重对齐引导线端点 (加入防穿透圆盘算法)
+        val rSafeMargin = with(density) { 8.dp.toPx() } // 安全向外偏置
         group.forEach { item ->
             val newEndY = item.textY + item.textHeight / 2f
-            item.endPt = Offset(item.endPt.x, newEndY)
-            item.midPt = Offset(item.midPt.x, newEndY) // 同步调整转折点 Y 坐标以保持第二段折线绝对水平
+            val rOut = item.info.outerRadius
+            
+            // 计算为了不穿过圆盘，在当前 Y 轴高度下，折角点 x 距离圆心 centerX 的最小水平距离 minDx
+            val dy = newEndY - centerY
+            val rSafe = rOut + rSafeMargin
+            val minDx = if (rSafe * rSafe > dy * dy) {
+                kotlin.math.sqrt(rSafe * rSafe - dy * dy)
+            } else {
+                0f
+            }
+            
+            // 调整折角点 midPt.x，确保它在安全圆盘范围外
+            var newMidX = item.midPt.x
+            if (item.isLeft) {
+                val maxMidX = centerX - minDx
+                if (newMidX > maxMidX) {
+                    newMidX = maxMidX
+                }
+            } else {
+                val minMidX = centerX + minDx
+                if (newMidX < minMidX) {
+                    newMidX = minMidX
+                }
+            }
+            
+            item.midPt = Offset(newMidX, newEndY)
+            
+            // 保持水平段长度 lineLength2，同步更新 endPt
+            val dir = if (item.isLeft) -1f else 1f
+            item.endPt = Offset(newMidX + lineLength2 * dir, newEndY)
         }
     }
 
