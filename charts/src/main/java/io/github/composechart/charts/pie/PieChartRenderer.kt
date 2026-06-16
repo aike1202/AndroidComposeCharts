@@ -111,8 +111,15 @@ class PieChartRenderer(
                 val wReserve = maxTextWidth + line1 + line2 + textMargin
                 val maxRadiusX = (gridRect.width / 2f - wReserve).coerceAtLeast(0f)
                 val maxRadiusY = (gridRect.height / 2f - with(density) { 16.dp.toPx() }).coerceAtLeast(0f)
-                val autoRadius = min(maxRadiusX, maxRadiusY).coerceAtLeast(baseRadius * 0.35f)
-                maxRadius = autoRadius * style.pieOptions.outerRadiusRatio
+                val autoRadius = min(maxRadiusX, maxRadiusY)
+                
+                // 空间局促时强制使用保底比例(baseRadius * 0.5f)，防止饼图被挤压得太小；空间充裕时才进行比例缩放
+                val limitRadius = baseRadius * 0.5f
+                if (autoRadius < limitRadius) {
+                    maxRadius = limitRadius
+                } else {
+                    maxRadius = autoRadius * style.pieOptions.outerRadiusRatio
+                }
             } else {
                 maxRadius = baseRadius * style.pieOptions.outerRadiusRatio
             }
