@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.compose)
@@ -51,7 +53,21 @@ dependencies {
 }
 
 afterEvaluate {
+    val localProps = rootProject.file("local.properties")
+    val props = Properties()
+    if (localProps.exists()) props.load(localProps.inputStream())
+
     publishing {
+        repositories {
+            maven {
+                name = "GitHubPackages"
+                url = uri("https://maven.pkg.github.com/aike1202/AndroidComposeCharts")
+                credentials {
+                    username = props.getProperty("gpr.user") ?: System.getenv("GITHUB_ACTOR")
+                    password = props.getProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
+                }
+            }
+        }
         publications {
             register<MavenPublication>("release") {
                 from(components["release"])

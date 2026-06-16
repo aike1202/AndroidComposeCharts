@@ -1,8 +1,9 @@
-﻿# AndroidComposeCharts
+# AndroidComposeCharts
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Platform](https://img.shields.io/badge/Platform-Android-green.svg)](https://developer.android.com)
 [![Jetpack Compose](https://img.shields.io/badge/Compose-BOM_2024.04-purple.svg)](https://developer.android.com/jetpack/compose)
+[![GitHub Packages](https://img.shields.io/badge/GitHub_Packages-1.0.0-blue.svg)](https://github.com/aike1202/AndroidComposeCharts/packages)
 
 **AndroidComposeCharts** (Also searchable via: **Android Compose Chart** / **Jetpack Compose Chart**) 是一个利用 Kotlin + Jetpack Compose Canvas 纯原生开发的高性能、高颜值、深具声明式交互质感的 Android 纯 Compose 图表库。
 
@@ -113,6 +114,94 @@
     <td colspan="2"></td>
   </tr>
 </table>
+
+---
+
+## 🚀 接入指南
+
+### 环境要求
+
+| 项目 | 最低版本 |
+|------|----------|
+| Android SDK | `minSdk 24`（Android 7.0+）|
+| Jetpack Compose | BOM `2024.04`+ |
+| Kotlin | 1.9+ |
+| Gradle | 8.0+ |
+
+### Step 1 — 配置 GitHub Packages 认证
+
+> ⚠️ **注意**：GitHub Packages 要求身份验证才可拉取依赖。请先前往 [GitHub → Settings → Developer settings → Personal access tokens (classic)](https://github.com/settings/tokens) 生成一个 Token，勾选 **`read:packages`** 权限。
+
+在项目根目录的 `local.properties`（已被 `.gitignore` 忽略，不会提交到版本控制）中添加凭证：
+
+```properties
+gpr.user=你的GitHub用户名
+gpr.key=ghp_xxxxxxxxxxxxxxxxxxxx
+```
+
+### Step 2 — 添加 Maven 仓库
+
+在 `settings.gradle.kts` 的 `dependencyResolutionManagement.repositories` 中加入 GitHub Packages：
+
+```kotlin
+// settings.gradle.kts
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+        maven {
+            url = uri("https://maven.pkg.github.com/aike1202/AndroidComposeCharts")
+            credentials {
+                val localProps = file("local.properties")
+                val props = java.util.Properties()
+                if (localProps.exists()) props.load(localProps.inputStream())
+                username = props.getProperty("gpr.user") ?: System.getenv("GITHUB_ACTOR")
+                password = props.getProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
+            }
+        }
+    }
+}
+```
+
+### Step 3 — 添加依赖
+
+在你的应用模块（通常是 `app/build.gradle.kts`）中添加：
+
+```kotlin
+dependencies {
+    implementation("com.github.aike1202:charts:1.0.0")
+    // core 模块已通过 charts 的 api() 传递依赖自动引入，无需额外声明
+}
+```
+
+如果你只需要核心数据模型与样式定义而不需要具体图表实现，可以单独引入 `core`：
+
+```kotlin
+dependencies {
+    implementation("com.github.aike1202:core:1.0.0")
+}
+```
+
+### Step 4 — Sync & 开始使用
+
+点击 Android Studio 的 **Sync Now**，同步完成后即可在 Composable 函数中导入并使用所有图表：
+
+```kotlin
+import io.github.composechart.charts.line.*      // 折线图
+import io.github.composechart.charts.bar.*       // 柱状图
+import io.github.composechart.charts.pie.*       // 饼图 / 环形图
+import io.github.composechart.charts.bar3d.*     // 3D 柱状打卡图
+import io.github.composechart.charts.radar.*     // 雷达图
+import io.github.composechart.charts.kline.*     // K线图
+import io.github.composechart.charts.gauge.*     // 仪表盘
+import io.github.composechart.charts.calendar.*  // 日历热力图
+import io.github.composechart.charts.scatter.*   // 散点图
+import io.github.composechart.charts.boxplot.*   // 箱线图
+import io.github.composechart.charts.funnel.*    // 漏斗图
+import io.github.composechart.charts.mixed.*     // 混合图
+import io.github.composechart.charts.polar.*     // 极坐标图
+```
 
 ---
 
