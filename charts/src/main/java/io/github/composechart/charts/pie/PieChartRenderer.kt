@@ -126,19 +126,72 @@ class PieChartRenderer(
         val roseType = style.pieOptions.roseType
         val padAngle = style.pieOptions.padAngle
 
+        val totalSweep = style.pieOptions.maxAngleSweep
+        val minAngle = style.pieOptions.minAngle
+        
+        // 1. 计算原始扫掠角度列表
+        val initialSweeps = visibleSlices.map { slice ->
+            if (roseType == RoseType.Radius) {
+                totalSweep / totalCount
+            } else {
+                if (totalValue > 0f) (slice.value / totalValue) * totalSweep else 0f
+            }
+        }.toFloatArray()
+
+        // 2. 若配置了 minAngle 且具备分配余量，则进入重分配收敛迭代
+        val finalSweeps = FloatArray(visibleSlices.size)
+        if (minAngle > 0f && totalCount * minAngle <= totalSweep) {
+            val adjusted = BooleanArray(visibleSlices.size) { false }
+            val tempSweeps = initialSweeps.clone()
+            var hasUnderMin = true
+            var loopCount = 0
+            while (hasUnderMin && loopCount < 10) { // 最多迭代 10 次收敛
+                hasUnderMin = false
+                var fixedSweepSum = 0f
+                var activeValueSum = 0f
+                for (i in tempSweeps.indices) {
+                    if (adjusted[i]) {
+                        fixedSweepSum += tempSweeps[i]
+                    } else if (tempSweeps[i] < minAngle) {
+                        tempSweeps[i] = minAngle
+                        adjusted[i] = true
+                        fixedSweepSum += minAngle
+                        hasUnderMin = true
+                    } else {
+                        activeValueSum += visibleSlices[i].value
+                    }
+                }
+                val remainingSweep = (totalSweep - fixedSweepSum).coerceAtLeast(0f)
+                if (activeValueSum > 0f) {
+                    for (i in tempSweeps.indices) {
+                        if (!adjusted[i]) {
+                            tempSweeps[i] = (visibleSlices[i].value / activeValueSum) * remainingSweep
+                        }
+                    }
+                } else {
+                    break
+                }
+                loopCount++
+            }
+            for (i in tempSweeps.indices) {
+                finalSweeps[i] = tempSweeps[i]
+            }
+        } else {
+            for (i in initialSweeps.indices) {
+                finalSweeps[i] = initialSweeps[i]
+            }
+        }
+
         var currentAngle = style.pieOptions.startAngle
 
         val infos = mutableListOf<SliceDrawInfo>()
+        var visibleIndex = 0
 
         slices.forEachIndexed { index, slice ->
             if (slice.name in hiddenList) return@forEachIndexed
 
-            // 1. 圆心角计算
-            val sweepAngleRaw = if (roseType == RoseType.Radius) {
-                style.pieOptions.maxAngleSweep / totalCount
-            } else {
-                if (totalValue > 0f) (slice.value / totalValue) * style.pieOptions.maxAngleSweep else 0f
-            }
+            // 1. 圆心角计算 (应用 finalSweeps 得到满足 minAngle 后的最终角度)
+            val sweepAngleRaw = finalSweeps.getOrNull(visibleIndex) ?: 0f
             val sweepAngle = sweepAngleRaw * animProgress
 
             // 2. 外径大小计算
@@ -183,6 +236,7 @@ class PieChartRenderer(
             )
 
             currentAngle += sweepAngleRaw
+            visibleIndex++
         }
         sliceDrawInfos = infos
     }
@@ -440,7 +494,10 @@ class PieChartRenderer(
         val labelStyle = style.legendOptions.textStyle.copy(fontSize = 11.sp, color = labelColor)
 
         // 收集待渲染的文字及坐标
-        val labelItems = sliceDrawInfos.map { info ->
+        val labelItems = sliceDrawInfos.mapNotNull { info ->
+            val percent = if (totalValue > 0f) (info.slice.value / totalValue) * 100f else 0f
+            if (percent < style.pieOptions.minShowLabelPercent) return@mapNotNull null
+
             val xc = centerX + info.animOffset.x
             val yc = centerY + info.animOffset.y
             val rOut = info.outerRadius
@@ -479,7 +536,6 @@ class PieChartRenderer(
                 }
             }
 
-            val percent = if (totalValue > 0f) (info.slice.value / totalValue) * 100f else 0f
             val text = "${info.slice.name} (${String.format("%.1f", percent)}%)"
             
             // 限制单行文字最大宽度为容器网格宽度的 28% (最低不低于 60dp)，超出自动 Ellipsis 截断防止挤爆容器
@@ -513,15 +569,34 @@ class PieChartRenderer(
             )
         }
 
-        // 分左右侧进行防碰撞推挤调整
+        // 计算单侧最大可容纳的标签行数，防止过密重叠溢出边界
+        val itemHeight = with(density) { 22.dp.toPx() }
+        val maxAllowed = (grid.height / itemHeight).toInt().coerceAtLeast(2)
+
+        // 分左右侧进行防碰撞推挤调整，并按占比大小保留前 maxAllowed 个
         val leftGroup = labelItems.filter { it.isLeft }.sortedBy { it.textY }
         val rightGroup = labelItems.filter { !it.isLeft }.sortedBy { it.textY }
 
-        adjustLabelsY(leftGroup, lineLength1, lineLength2)
-        adjustLabelsY(rightGroup, lineLength1, lineLength2)
+        val finalLeftGroup = if (leftGroup.size <= maxAllowed) {
+            leftGroup
+        } else {
+            val kept = leftGroup.sortedByDescending { it.info.slice.value }.take(maxAllowed)
+            leftGroup.filter { it in kept }
+        }
 
-        // 循环绘制所有项目
-        labelItems.forEach { item ->
+        val finalRightGroup = if (rightGroup.size <= maxAllowed) {
+            rightGroup
+        } else {
+            val kept = rightGroup.sortedByDescending { it.info.slice.value }.take(maxAllowed)
+            rightGroup.filter { it in kept }
+        }
+
+        adjustLabelsY(finalLeftGroup, lineLength1, lineLength2)
+        adjustLabelsY(finalRightGroup, lineLength1, lineLength2)
+
+        // 循环绘制所有被保留下来的项目
+        val finalDrawItems = finalLeftGroup + finalRightGroup
+        finalDrawItems.forEach { item ->
             val lineColor = style.pieOptions.labelLineColor ?: item.info.slice.color
 
             // 1. 画折线

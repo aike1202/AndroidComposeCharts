@@ -51,6 +51,15 @@ import androidx.compose.ui.unit.sp
 import io.github.composechart.core.style.ChartStyle
 import io.github.composechart.showroom.screens.*
 import io.github.composechart.showroom.ui.theme.ComposeChartTheme
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.border
+import androidx.compose.material3.Slider
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Checkbox
+import androidx.compose.runtime.mutableFloatStateOf
+import io.github.composechart.charts.pie.*
+import io.github.composechart.core.style.PieLabelAlign
+import io.github.composechart.core.style.PieOptions
 
 enum class ScreenshotTask {
     NONE,
@@ -85,6 +94,7 @@ class MainActivity : ComponentActivity() {
  */
 sealed class Screen {
     object Home : Screen()
+    object PieTest : Screen()
     data class Detail(val chartType: ChartType) : Screen()
 }
 
@@ -171,7 +181,7 @@ fun ShowroomApp(
     val showControlPanel = !isAutoRunning
 
     // 系统返回键拦截
-    if (currentScreen is Screen.Detail) {
+    if (currentScreen is Screen.Detail || currentScreen is Screen.PieTest) {
         BackHandler {
             if (isAutoRunning) {
                 currentTask = ScreenshotTask.NONE
@@ -253,7 +263,7 @@ fun ShowroomApp(
                 .padding(horizontal = 8.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            if (currentScreen is Screen.Detail) {
+            if (currentScreen is Screen.Detail || currentScreen is Screen.PieTest) {
                 IconButton(onClick = {
                     if (isAutoRunning) {
                         currentTask = ScreenshotTask.NONE
@@ -275,6 +285,7 @@ fun ShowroomApp(
             Text(
                 text = when (val s = currentScreen) {
                     Screen.Home -> "ComposeChart 演示大厅"
+                    Screen.PieTest -> "饼图自适应测试"
                     is Screen.Detail -> s.chartType.title
                 },
                 style = MaterialTheme.typography.titleLarge.copy(
@@ -286,7 +297,20 @@ fun ShowroomApp(
 
             // 按钮操作区
             if (currentScreen is Screen.Home) {
-                // 主页：提供自动截图按钮
+                // 主页：提供饼图测试与自动截图按钮
+                Button(
+                    onClick = {
+                        currentScreen = Screen.PieTest
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF3B82F6)
+                    ),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                ) {
+                    Text(text = "饼图测试", fontSize = 12.sp)
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+
                 val btnText = if (isAutoRunning) {
                     "停止中"
                 } else {
@@ -367,8 +391,25 @@ fun ShowroomApp(
                 )
             }
 
-            // 2. 详情页作为顶层叠加渲染，防止点击穿透到底层列表项
-            if (currentScreen is Screen.Detail) {
+            // 2. 详情页及测试页作为顶层叠加渲染，防止点击穿透到底层列表项
+            if (currentScreen is Screen.PieTest) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(backgroundColor)
+                        .clickable(
+                            interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+                            indication = null,
+                            onClick = {}
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    PieTestScreen(
+                        onExitTest = { currentScreen = Screen.Home },
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+            } else if (currentScreen is Screen.Detail) {
                 val s = currentScreen as Screen.Detail
                 val themeSuffix = if (isDark) "_dark" else "_light"
                 val fileName = "${s.chartType.name.lowercase()}$themeSuffix"
@@ -713,6 +754,260 @@ fun ChartCard(
                 lineHeight = 15.sp,
                 modifier = Modifier.height(30.dp)
             )
+        }
+    }
+}
+
+@Composable
+fun PieTestScreen(
+    onExitTest: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val pieChartData = remember {
+        PieChartData(
+            slices = listOf(
+                PieSlice("肉", 46.2f, Color(0xFFEE6666)),
+                PieSlice("学生奶", 14.9f, Color(0xFF5470C6)),
+                PieSlice("水果", 22.7f, Color(0xFFFC8452)),
+                PieSlice("蔬菜", 12.1f, Color(0xFF9A60B4)),
+                PieSlice("米、面、油", 2.5f, Color(0xFF3BA272)),
+                PieSlice("蛋类", 1.0f, Color(0xFFFAC858)),
+                PieSlice("调味品", 0.5f, Color(0xFF73C0DE)),
+                PieSlice("馕", 0.1f, Color(0xFF91CC75)),
+                PieSlice("糕点类", 0.01f, Color(0xFFEE6666))
+            )
+        )
+    }
+
+    var labelAlign by remember { mutableStateOf(PieLabelAlign.LeftRight) }
+    var outerRadiusRatio by remember { mutableFloatStateOf(0.9f) }
+    var innerRadiusRatio by remember { mutableFloatStateOf(0.6f) }
+    var containerWidthRatio by remember { mutableFloatStateOf(0.7f) }
+    var showLabel by remember { mutableStateOf(true) }
+    var minShowLabelPercent by remember { mutableFloatStateOf(0f) } // 默认 0f，即不对过小标签隐去，以便测试 minAngle
+    var minAngle by remember { mutableFloatStateOf(15f) } // 默认 15度 最小角度，以立刻呈现打散避让效果！
+
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .background(Color(0xFF0F172A))
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.SpaceBetween
+    ) {
+        // 1. 顶部标题与退出测试按钮
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "饼图 4:3 比例自适应测试",
+                color = Color.White,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Button(
+                onClick = onExitTest,
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3B82F6)),
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp)
+            ) {
+                Text("返回主演示", fontSize = 11.sp)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // 2. 核心 4:3 浅白色 1dp 边框容器及饼图渲染
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+            contentAlignment = Alignment.Center
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(containerWidthRatio)
+                    .aspectRatio(4f / 3f)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color(0xFF1B1B1D))
+                    .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(12.dp)) // 1dp 浅白色边框
+                    .padding(8.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                val testStyle = ChartStyle.Dark.copy(
+                    backgroundColor = Color.Transparent,
+                    pieOptions = ChartStyle.Dark.pieOptions.copy(
+                        innerRadiusRatio = innerRadiusRatio,
+                        outerRadiusRatio = outerRadiusRatio,
+                        showLabel = showLabel,
+                        labelAlign = labelAlign,
+                        padAngle = 2f,
+                        cornerRadius = 4.dp,
+                        minShowLabelPercent = minShowLabelPercent,
+                        minAngle = minAngle
+                    )
+                )
+
+                PieChart(
+                    data = pieChartData,
+                    style = testStyle,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // 3. 底部调试控制面板
+        Card(
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
+            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(14.dp)
+            ) {
+                // 对齐模式 RadioButtons
+                Text("标签排布模式 (labelAlign):", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        RadioButton(
+                            selected = labelAlign == PieLabelAlign.None,
+                            onClick = { labelAlign = PieLabelAlign.None }
+                        )
+                        Text("None (放射)", color = Color.LightGray, fontSize = 11.sp)
+                    }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        RadioButton(
+                            selected = labelAlign == PieLabelAlign.LeftRight,
+                            onClick = { labelAlign = PieLabelAlign.LeftRight }
+                        )
+                        Text("LeftRight (左右)", color = Color.LightGray, fontSize = 11.sp)
+                    }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        RadioButton(
+                            selected = labelAlign == PieLabelAlign.TopBottom,
+                            onClick = { labelAlign = PieLabelAlign.TopBottom }
+                        )
+                        Text("TopBottom (上下)", color = Color.LightGray, fontSize = 11.sp)
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // 滑块与开关控制
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("显示外部标签:", color = Color.White, fontSize = 12.sp)
+                    Checkbox(
+                        checked = showLabel,
+                        onCheckedChange = { showLabel = it }
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                // 最小扫掠角 Slider
+                Column {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text("最小角度大小 (minAngle):", color = Color.White, fontSize = 12.sp)
+                        Text(String.format("%.1f°", minAngle), color = Color(0xFF3B82F6), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    }
+                    Slider(
+                        value = minAngle,
+                        onValueChange = { minAngle = it },
+                        valueRange = 0f..30.0f,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                // 动态过滤微小占比标签的 Slider
+                Column {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text("微小标签过滤阈值 (minShowLabelPercent):", color = Color.White, fontSize = 12.sp)
+                        Text(String.format("%.2f%%", minShowLabelPercent), color = Color(0xFF3B82F6), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    }
+                    Slider(
+                        value = minShowLabelPercent,
+                        onValueChange = { minShowLabelPercent = it },
+                        valueRange = 0f..5.0f,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                // 动态拉缩容器宽度的 Slider
+                Column {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text("测试容器宽度比例 (maxWidthRatio):", color = Color.White, fontSize = 12.sp)
+                        Text(String.format("%.2f", containerWidthRatio), color = Color(0xFF3B82F6), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    }
+                    Slider(
+                        value = containerWidthRatio,
+                        onValueChange = { containerWidthRatio = it },
+                        valueRange = 0.35f..1.0f,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                Column {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text("外半径比例 (outerRadiusRatio):", color = Color.White, fontSize = 12.sp)
+                        Text(String.format("%.2f", outerRadiusRatio), color = Color(0xFF3B82F6), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    }
+                    Slider(
+                        value = outerRadiusRatio,
+                        onValueChange = { outerRadiusRatio = it },
+                        valueRange = 0.4f..1.0f,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                Column {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text("内半径比例 (innerRadiusRatio):", color = Color.White, fontSize = 12.sp)
+                        Text(String.format("%.2f", innerRadiusRatio), color = Color(0xFF3B82F6), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    }
+                    Slider(
+                        value = innerRadiusRatio,
+                        onValueChange = { innerRadiusRatio = it },
+                        valueRange = 0.0f..0.8f,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            }
         }
     }
 }

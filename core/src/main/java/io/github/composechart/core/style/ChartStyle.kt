@@ -224,7 +224,9 @@ data class PieOptions(
     val roundCap: Boolean = false,     // 是否为环形图的端面开启首尾半圆圆角
     val borderWidth: Dp = 0.dp,        // 边框描边宽度 (配合 cornerRadius 实现网页版防重叠圆角)
     val borderColor: Color? = null,     // 边框描边颜色，为 null 时自动采用图表背景色
-    val labelAlign: PieLabelAlign = PieLabelAlign.None // 标签排列对齐模式 (None 放射, Edge 左右垂直对齐)
+    val labelAlign: PieLabelAlign = PieLabelAlign.None, // 标签排列对齐模式 (None 放射, Edge 左右垂直对齐)
+    val minAngle: Float = 0f, // 扇区最小扫掠角度限制，设置为大于0的值（如 10f, 15f）可避免极小占比的扇区挤压标签引导线，防止重叠
+    val minShowLabelPercent: Float = 0f // 过滤过小标签占比的阈值 (0f-100f)
 ) {
     companion object {
         val Default = PieOptions()
