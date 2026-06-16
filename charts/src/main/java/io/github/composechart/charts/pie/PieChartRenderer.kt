@@ -67,20 +67,56 @@ class PieChartRenderer(
         animProgress: Float = 1.0f,
         gridRect: Rect = Rect.Zero
     ) {
-        if (gridRect != Rect.Zero) {
-            grid = gridRect
-            centerX = gridRect.left + gridRect.width / 2f
-            centerY = gridRect.top + gridRect.height / 2f
-            maxRadius = (min(gridRect.width, gridRect.height) / 2f) * style.pieOptions.outerRadiusRatio
-        }
-
         val visibleSlices = slices.filter { it.name !in hiddenList }
         if (visibleSlices.isEmpty()) {
             sliceDrawInfos = emptyList()
             return
         }
-
         val totalValue = visibleSlices.sumOf { it.value.toDouble() }.toFloat()
+
+        if (gridRect != Rect.Zero) {
+            grid = gridRect
+            centerX = gridRect.left + gridRect.width / 2f
+            centerY = gridRect.top + gridRect.height / 2f
+
+            val baseRadius = min(gridRect.width, gridRect.height) / 2f
+
+            if (style.pieOptions.showLabel) {
+                val line1 = with(density) { style.pieOptions.labelLineLength1.toPx() }
+                val line2 = with(density) { style.pieOptions.labelLineLength2.toPx() }
+                val textMargin = with(density) { 4.dp.toPx() }
+                
+                val baseColor = style.legendOptions.textStyle.color
+                val labelColor = if (baseColor == Color.Unspecified) {
+                    if (style.backgroundColor == Color.Transparent || style.backgroundColor.red > 0.5f) Color.Black else Color.White
+                } else baseColor
+                val labelStyle = style.legendOptions.textStyle.copy(fontSize = 11.sp, color = labelColor)
+
+                // 找出所有可见标签中最长的那一个文本宽度
+                var maxTextWidth = 0f
+                visibleSlices.forEach { slice ->
+                    val percent = if (totalValue > 0f) (slice.value / totalValue) * 100f else 0f
+                    val text = "${slice.name} (${String.format("%.1f", percent)}%)"
+                    val maxLabelWidth = (gridRect.width * 0.28f).coerceAtLeast(with(density) { 60.dp.toPx() }).toInt()
+                    val textLayout = textMeasurer.measure(
+                        text = text,
+                        style = labelStyle,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                        maxLines = 1,
+                        constraints = androidx.compose.ui.unit.Constraints(maxWidth = maxLabelWidth)
+                    )
+                    maxTextWidth = maxTextWidth.coerceAtLeast(textLayout.size.width.toFloat())
+                }
+
+                val wReserve = maxTextWidth + line1 + line2 + textMargin
+                val maxRadiusX = (gridRect.width / 2f - wReserve).coerceAtLeast(0f)
+                val maxRadiusY = (gridRect.height / 2f - with(density) { 16.dp.toPx() }).coerceAtLeast(0f)
+                val autoRadius = min(maxRadiusX, maxRadiusY).coerceAtLeast(baseRadius * 0.35f)
+                maxRadius = autoRadius * style.pieOptions.outerRadiusRatio
+            } else {
+                maxRadius = baseRadius * style.pieOptions.outerRadiusRatio
+            }
+        }
         val totalCount = visibleSlices.size
 
         val maxVal = visibleSlices.maxOfOrNull { it.value } ?: 1f
@@ -443,10 +479,18 @@ class PieChartRenderer(
                 }
             }
 
-            // 文本内容测算
             val percent = if (totalValue > 0f) (info.slice.value / totalValue) * 100f else 0f
             val text = "${info.slice.name} (${String.format("%.1f", percent)}%)"
-            val textLayout = textMeasurer.measure(text = text, style = labelStyle)
+            
+            // 限制单行文字最大宽度为容器网格宽度的 28% (最低不低于 60dp)，超出自动 Ellipsis 截断防止挤爆容器
+            val maxLabelWidth = (grid.width * 0.28f).coerceAtLeast(with(density) { 60.dp.toPx() }).toInt()
+            val textLayout = textMeasurer.measure(
+                text = text,
+                style = labelStyle,
+                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                maxLines = 1,
+                constraints = androidx.compose.ui.unit.Constraints(maxWidth = maxLabelWidth)
+            )
             val textWidth = textLayout.size.width.toFloat()
             val textHeight = textLayout.size.height.toFloat()
 

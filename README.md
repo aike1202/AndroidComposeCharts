@@ -13,7 +13,7 @@
 
 ```kotlin
 dependencies {
-    implementation("com.github.aike1202.AndroidComposeCharts:charts:1.0.2")
+    implementation("com.github.aike1202.AndroidComposeCharts:charts:1.0.3")
 }
 ```
 
